@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bonfire Code</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 1C9 5 13 6 13 10a5 5 0 0 1-10 0c0-3 3-4 5-9z' fill='%23e8641c'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/src/app/style.css" />
+</head>
+<body>
+  <header class="top">
+    <h1>Bonfire <span>Code</span></h1>
+    <nav><a href="./" aria-current="page">Generate</a><a href="./scan/">Scan</a></nav>
+  </header>
+  <main>
+    <section class="panel" aria-label="Generator">
+      <p class="lede">A standard QR burns at the base of the column. The embers rising from it are a second code
+        that spells the same text, and the glowing hotpoints are placed by the text's hash.</p>
+      <label>Text for the QR
+        <textarea id="text" rows="3" spellcheck="false">https://this.side.of.tech</textarea>
+      </label>
+      <details>
+        <summary>Different text in the fire</summary>
+        <label style="margin-top:8px">Ember text <small>Leave empty to burn the same text. Only the Bonfire scanner can read it.</small>
+          <input id="ember-text" type="text" spellcheck="false" />
+        </label>
+      </details>
+      <label class="check"><input id="xray" type="checkbox" /> X-ray: show the convention</label>
+      <p id="error" class="error" hidden></p>
+      <dl class="stats" id="stats"></dl>
+      <div class="row">
+        <button class="primary" id="dl-svg">Download SVG</button>
+        <button id="dl-png">Download PNG</button>
+      </div>
+      <details>
+        <summary>How the convention works</summary>
+        <ol>
+          <li><b>QR:</b> a standard QR at error correction H, which any phone can read. Dark modules are charred cells, coloured by distance from the flame.</li>
+          <li><b>Embers:</b> above the QR's quiet zone, a fixed plume of cells on the same grid. Each data cell holds one bit (ember or blank) of a
+            Reed-Solomon-protected, whitened copy of the text, in a fixed shuffled order. Extra particles fill the gaps as decoys.</li>
+          <li><b>Hotpoints:</b> 5–8 dark modules chosen by SHA-256 of the text, with a glowing core. The scanner checks that they are hot.</li>
+        </ol>
+        <p>Full spec: <code>SPEC.md</code> in the repository.</p>
+      </details>
+    </section>
+    <section class="frame-wrap" aria-label="Poster preview">
+      <div class="frame"><div class="mat" id="poster"></div></div>
+    </section>
+  </main>
+  <script type="module" src="/src/app/generate.js"></script>
+</body>
+</html>

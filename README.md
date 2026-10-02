@@ -1,0 +1,63 @@
+# Bonfire
+
+> *Humankind's great tech began with fire. This `this.side.of.tech` is You.*
+
+A generator and scanner for **Bonfire codes**: posters where a standard QR code
+burns at the base of a grid column and rises as a plume of embers.
+
+* **The QR is real.** It's a standard QR at error correction H, readable by
+  any phone camera.
+* **The fire is a code too.** The ember pattern above the QR is a
+  Reed-Solomon-protected copy of the text (or a hidden second text) under its
+  own reversible convention ([SPEC.md](SPEC.md)). Every "random" particle is
+  derived from the text.
+* **Hotpoints** are a few glowing modules inside the QR, placed by the text's
+  SHA-256 hash. The Bonfire scanner checks they glow, so a flat black
+  reprint is flagged.
+
+## Pages
+
+| URL      | What it does |
+|----------|--------------|
+| `/`      | **Generator.** Type text, get the poster as SVG or PNG. Optional hidden ember text, plus an X-ray view of the convention. |
+| `/scan/` | **Scanner.** Camera or image upload. Reads the QR, then the fire, then checks the hotpoints. With the camera, it pools evidence across frames. |
+
+## Run
+
+```sh
+npm install
+npm run dev       # http://localhost:5173/ and /scan/
+npm run build     # static site in dist/ (relative paths; host anywhere)
+npm test
+```
+
+The camera needs a secure context (HTTPS or `localhost`).
+
+The end-to-end tests rasterize and distort posters with Python:
+`pip install cairosvg opencv-python-headless numpy`. Those tests are skipped
+when Python is missing.
+
+## Layout
+
+```
+src/core/      convention + rendering + scanning (no DOM; runs in Node too)
+  prng.js        SHA-256 counter stream used for every convention choice
+  rs.js          Reed-Solomon GF(256) with error + erasure decoding
+  qr.js          standard QR matrix (qrcode-generator) + function-pattern mask
+  ember.js       ember layout and codec
+  hotpoints.js   hotpoint placement
+  render.js      poster SVG
+  scan.js        ZXing (WebAssembly) + grid refinement + ember / hotpoint reading
+src/app/       the two pages
+tests/         unit tests and render → distort → scan tests
+```
+
+## Limits
+
+* Ember capacity grows with the QR: 23 bytes for a version 1 QR, 56 for
+  version 4, and 124 at most (one RS block). Texts longer than 124 bytes are
+  rejected by the generator.
+* The scanner needs the whole plume in frame and in reasonable focus. The
+  QR alone is enough for ordinary readers.
+* Printing: keep modules at least about 1.5 mm for phone scanning at arm's length.
+  The PNG export is about 36 px per module.
