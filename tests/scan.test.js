@@ -64,3 +64,15 @@ test('scan: standard QR readers see the code', { skip: !haveRaster && 'python ra
     `import cv2; print(cv2.QRCodeDetector().detectAndDecode(cv2.imread(${JSON.stringify(img.path)}))[0])`]).toString().trim();
   assert.equal(out, 'https://this.side.of.tech');
 });
+
+test('fire QR posters scan as standard QR codes', { skip: !haveRaster && 'python raster stack missing' }, async () => {
+  const { renderFireQr } = await import('../src/core/fireart.js');
+  const text = 'https://this.side.of.tech';
+  for (const opts of [{}, { level: 'M', version: 10 }, { level: 'H', burn: 0.6 }]) {
+    const { svg } = renderFireQr(text, { hideTiming: true, ...opts });
+    for (const c of [{ width: 1100 }, { width: 600 }, { warp: 0.06, blur: 1.1, noise: 6, rotate: 10 }]) {
+      const r = await scanImage(rasterize(svg, c), { ember: false });
+      assert.equal(r?.text, text, `${JSON.stringify(opts)} ${JSON.stringify(c)}`);
+    }
+  }
+});

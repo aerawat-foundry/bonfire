@@ -34,6 +34,7 @@ export default defineConfig(async ({ mode }) => ({
       input: {
         generator: resolve(import.meta.dirname, 'index.html'),
         scanner: resolve(import.meta.dirname, 'scan/index.html'),
+        fire: resolve(import.meta.dirname, 'fire/index.html'),
       },
     },
   },

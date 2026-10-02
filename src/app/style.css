@@ -97,3 +97,16 @@ header.top nav .install { font-size: .85rem; padding: 6px 12px; border-radius: 9
   width: max-content; max-width: calc(100% - 32px); padding: 10px 16px; border-radius: 12px;
   background: var(--panel); color: var(--text); box-shadow: 0 8px 30px rgba(0,0,0,.25); border: 1px solid var(--line);
 }
+fieldset.seg { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+fieldset.seg legend { font-size: .88rem; font-weight: 600; margin-bottom: 6px; padding: 0; }
+fieldset.seg legend small { font-weight: 400; color: var(--muted); display: block; }
+fieldset.seg label { display: inline-flex; align-items: center; gap: 4px; font-weight: 500; font-size: .85rem;
+  border: 1px solid var(--line); border-radius: 999px; padding: 5px 10px; cursor: pointer; }
+fieldset.seg label:has(input:checked) { border-color: var(--ember); background: var(--ember-soft); }
+fieldset.seg input { accent-color: var(--ember); margin: 0; }
+input[type='range'] { width: 100%; accent-color: var(--ember); }
+.check small { color: var(--muted); font-weight: 400; }
+.scancheck { margin: 0; font-size: .9rem; font-weight: 600; }
+.scancheck.ok { color: var(--ok); }
+.scancheck.bad { color: var(--bad); }
+.scancheck.wait { color: var(--muted); font-weight: 500; }
