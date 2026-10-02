@@ -90,3 +90,10 @@ details { font-size: 0.9rem; }
 details summary { cursor: pointer; font-weight: 600; }
 details p, details li { color: var(--muted); }
 code { font-family: var(--mono); font-size: 0.88em; }
+header.top nav .install { font-size: .85rem; padding: 6px 12px; border-radius: 999px; }
+[hidden] { display: none !important; }
+.pwa-toast {
+  position: fixed; z-index: 10; left: 50%; top: 16px; transform: translateX(-50%);
+  width: max-content; max-width: calc(100% - 32px); padding: 10px 16px; border-radius: 12px;
+  background: var(--panel); color: var(--text); box-shadow: 0 8px 30px rgba(0,0,0,.25); border: 1px solid var(--line);
+}

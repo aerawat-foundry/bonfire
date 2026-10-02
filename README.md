@@ -26,10 +26,30 @@ burns at the base of a grid column and rises as a plume of embers.
 
 ```sh
 npm install
-npm run dev       # http://localhost:5173/ and /scan/
-npm run build     # static site in dist/ (relative paths; host anywhere)
+npm run dev        # http://localhost:5173/ and /scan/
+npm run dev:phone  # same, over HTTPS on your network (self-signed), to test the camera on a phone
+npm run build      # static site in dist/ (relative paths; host anywhere)
 npm test
 ```
+
+### Installable app (PWA)
+
+The build includes a web app manifest and a service worker (`sw.js`,
+generated with the exact list of built files). The app installs to the home
+screen and opens straight to the scanner. After the first visit both pages,
+including the ZXing WebAssembly, work offline. Use the **Install** button in the
+generator header or the scanner's top bar. On iPhone, use Share ▸ Add to Home Screen.
+
+### Camera permission
+
+The scanner opens the camera by itself only when permission is already
+granted. Otherwise it shows **Enable camera**, and that tap opens the browser's
+permission dialog: browsers show the dialog reliably only in response to a
+tap. If the camera was blocked earlier, browsers never ask again, so the
+scanner shows how to re-allow it on iPhone, Android or desktop.
+
+The dialog also never appears on plain `http://` (except `localhost`) or
+inside another site's frame. Use HTTPS (`npm run dev:phone` for local testing).
 
 The camera needs a secure context (HTTPS or `localhost`) and its own tab: pages embedded in another site's frame are not allowed to use the camera, and the scanner says so and offers to open in a new tab.
 
@@ -48,7 +68,9 @@ src/core/      convention + rendering + scanning (no DOM; runs in Node too)
   hotpoints.js   hotpoint placement
   render.js      poster SVG
   scan.js        ZXing (WebAssembly) + grid refinement + ember / hotpoint reading
-src/app/       the two pages
+src/app/       the two pages, plus pwa.js (install + service worker registration)
+src/sw-template.js  service worker; vite.config.js fills in the precache list
+public/        manifest and app icons
 tests/         unit tests and render → distort → scan tests
 ```
 

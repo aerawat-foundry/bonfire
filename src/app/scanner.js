@@ -1,6 +1,7 @@
 import { prepareZXingModule } from 'zxing-wasm/reader';
 import wasmUrl from 'zxing-wasm/reader/zxing_reader.wasm?url';
 import { scanImage } from '../core/scan.js';
+import { setupInstall } from './pwa.js';
 
 // Serve the ZXing WebAssembly from this site instead of a CDN.
 prepareZXingModule({
@@ -22,6 +23,7 @@ const wctx = work.getContext('2d', { willReadFrequently: true });
 const state = {
   stream: null,
   facing: 'environment',
+  wanted: false, // camera was running (resume it when the page is shown again)
   paused: false, // result sheet open
   still: null, // File being shown instead of the camera
   busy: false,
@@ -203,7 +205,7 @@ $('again').addEventListener('click', () => {
     video.hidden = false;
     setHint(idleHint());
   } else {
-    startCamera();
+    bootCamera();
   }
 });
 
@@ -217,10 +219,30 @@ const inFrame = (() => {
   }
 })();
 
+const ua = navigator.userAgent;
+const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isAndroid = /Android/.test(ua);
+const installed = window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true;
+
+/** Where to re-enable a camera that was blocked, for this platform. */
+function resetSteps() {
+  if (isIOS) {
+    return installed
+      ? 'On iPhone/iPad: open Settings ▸ Safari ▸ Camera and choose Ask or Allow, then reopen the app.'
+      : 'On iPhone/iPad: tap ᴀA in the address bar ▸ Website Settings ▸ Camera ▸ Allow (or Settings ▸ Safari ▸ Camera), then try again.';
+  }
+  if (isAndroid) {
+    return installed
+      ? 'On Android: long-press the Bonfire app icon ▸ App info ▸ Permissions ▸ Camera ▸ Allow, then try again.'
+      : 'On Android: tap the icon left of the address bar ▸ Permissions ▸ Camera ▸ Allow, then try again.';
+  }
+  return 'Click the camera (or lock/tune) icon in the address bar, set Camera to Allow, then try again.';
+}
+
 const PROBLEMS = {
   NotAllowedError: inFrame
     ? ['Camera blocked here', 'This page is embedded in another page, which is not allowed to use your camera. Open the scanner in its own tab.']
-    : ['Camera permission needed', 'Camera access was blocked. Allow the camera for this site (the camera icon in the address bar, or your browser’s site settings), then try again.'],
+    : ['Camera is blocked', `Your browser is blocking the camera for this site, so it won’t ask again. ${resetSteps()}`],
   NotFoundError: ['No camera found', 'This device does not seem to have a camera. You can still scan a saved image.'],
   NotReadableError: ['Camera is busy', 'Another app or tab is using the camera. Close it, then try again.'],
   insecure: ['Secure connection needed', 'Browsers only allow the camera on https:// pages (or localhost). Open the scanner over https.'],
@@ -230,23 +252,55 @@ PROBLEMS.SecurityError = PROBLEMS.NotAllowedError;
 PROBLEMS.OverconstrainedError = PROBLEMS.NotFoundError;
 PROBLEMS.AbortError = PROBLEMS.NotReadableError;
 
-function showProblem(reason, detail) {
-  const [title, text] = PROBLEMS[reason] || ['Camera not available', detail || 'The camera could not be started.'];
+/** Show the camera card: kind 'gate' asks for permission, 'problem' explains a failure. */
+function showNotice(kind, title, text, action) {
   root.classList.add('blocked');
+  $('notice').dataset.kind = kind;
   $('notice-title').textContent = title;
   $('notice-text').textContent = text;
+  $('retry').textContent = action;
+  $('retry').hidden = kind === 'problem' && inFrame;
   $('newtab').hidden = !inFrame;
   $('newtab').href = location.href;
   $('notice').hidden = false;
   setHint('');
 }
 
+function showProblem(reason, detail) {
+  const [title, text] = PROBLEMS[reason] || ['Camera not available', detail || 'The camera could not be started.'];
+  showNotice('problem', title, text, 'Try again');
+}
+
+function showGate(again = false) {
+  showNotice(
+    'gate',
+    again ? 'Camera permission not given' : 'Scan with your camera',
+    again
+      ? 'The permission prompt was closed. Tap Enable camera and choose Allow.'
+      : 'Tap Enable camera and choose Allow when your browser asks. The video stays on your device.',
+    'Enable camera',
+  );
+}
+
+/** 'granted' | 'denied' | 'prompt' | 'unknown' (Firefox and older Safari can't say). */
+async function cameraPermission() {
+  try {
+    const status = await navigator.permissions.query({ name: 'camera' });
+    status.onchange = () => {
+      if (status.state === 'granted' && !state.stream && !state.still) startCamera();
+    };
+    return status.state;
+  } catch {
+    return 'unknown';
+  }
+}
+
 async function startCamera() {
-  $('notice').hidden = true;
-  root.classList.remove('blocked');
   // Inside an embed the frame is often "insecure" only because of its parent page.
   if (!window.isSecureContext) return showProblem(inFrame ? 'NotAllowedError' : 'insecure');
   if (!navigator.mediaDevices?.getUserMedia) return showProblem('unsupported');
+  $('notice').hidden = true;
+  root.classList.remove('blocked');
   setHint('Starting camera…');
   stopCamera();
   let stream;
@@ -262,12 +316,16 @@ async function startCamera() {
       } catch (e2) {
         return showProblem(e2.name, e2.message);
       }
+    } else if (e.name === 'NotAllowedError' && !inFrame && (await cameraPermission()) === 'prompt') {
+      return showGate(true); // prompt dismissed, not blocked: let them ask again
     } else {
       return showProblem(e.name, e.message);
     }
   }
   state.stream = stream;
+  state.wanted = true;
   video.srcObject = stream;
+  video.hidden = !!state.still;
   try {
     await video.play();
   } catch { /* autoplay with muted+playsinline normally succeeds */ }
@@ -287,12 +345,27 @@ async function startCamera() {
   requestAnimationFrame(tick);
 }
 
+/**
+ * Open the camera straight away only when permission is already granted.
+ * Otherwise wait for a tap: browsers show the permission dialog reliably only
+ * in response to a user gesture, and some (Safari, Chrome's quiet prompts,
+ * installed apps) suppress or auto-block a prompt fired on page load.
+ */
+async function bootCamera() {
+  if (!window.isSecureContext) return showProblem(inFrame ? 'NotAllowedError' : 'insecure');
+  if (!navigator.mediaDevices?.getUserMedia) return showProblem('unsupported');
+  const permission = await cameraPermission();
+  if (permission === 'granted') return startCamera();
+  if (permission === 'denied') return showProblem('NotAllowedError');
+  showGate();
+}
+
 function stopCamera() {
   state.stream?.getTracks().forEach((t) => t.stop());
   state.stream = null;
 }
 
-$('retry').addEventListener('click', startCamera);
+$('retry').addEventListener('click', startCamera); // a tap: the dialog is allowed to appear
 $('flip').addEventListener('click', () => {
   state.facing = state.facing === 'environment' ? 'user' : 'environment';
   startCamera();
@@ -310,7 +383,7 @@ $('torch').addEventListener('click', async () => {
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
     stopCamera();
-  } else if (!state.still && !root.classList.contains('blocked')) {
+  } else if (state.wanted && !state.still) {
     startCamera();
   }
 });
@@ -422,4 +495,5 @@ root.addEventListener('drop', (e) => {
   scanFile(e.dataTransfer.files[0]);
 });
 
-startCamera();
+bootCamera();
+setupInstall(document.getElementById('install'));

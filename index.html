@@ -3,14 +3,21 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#ece8e1" />
   <title>Bonfire Code</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 1C9 5 13 6 13 10a5 5 0 0 1-10 0c0-3 3-4 5-9z' fill='%23e8641c'/%3E%3C/svg%3E" />
+  <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Bonfire" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   <link rel="stylesheet" href="/src/app/style.css" />
 </head>
 <body>
   <header class="top">
     <h1>Bonfire <span>Code</span></h1>
-    <nav><a href="./" aria-current="page">Generate</a><a href="./scan/">Scan</a></nav>
+    <nav><a href="./" aria-current="page">Generate</a><a href="./scan/">Scan</a><button id="install" class="install" hidden>Install app</button></nav>
   </header>
   <main>
     <section class="panel" aria-label="Generator">

@@ -1,5 +1,6 @@
 import { renderPoster } from '../core/render.js';
 import { utf8 } from '../core/prng.js';
+import { setupInstall } from './pwa.js';
 
 const $ = (id) => document.getElementById(id);
 const textEl = $('text');
@@ -86,3 +87,4 @@ $('dl-png').addEventListener('click', async () => {
 });
 
 update();
+setupInstall(document.getElementById('install'));

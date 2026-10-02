@@ -32,9 +32,9 @@ body { font: 16px/1.45 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   top: 0; padding-top: max(12px, env(safe-area-inset-top));
   background: linear-gradient(rgba(0,0,0,.55), transparent);
 }
-.bar.top { display: grid; grid-template-columns: 40px 1fr 40px; }
+.bar.top { display: grid; grid-template-columns: 88px 1fr 88px; }
+.bar.top .right { grid-column: 3; display: flex; gap: 8px; justify-content: flex-end; }
 .bar.top h1 { grid-column: 2; text-align: center; margin: 0; font: 600 1.05rem Georgia, 'Times New Roman', serif; letter-spacing: .01em; }
-#torch { grid-column: 3; }
 .bar.top h1 span { color: var(--ember); }
 .bar.bottom {
   bottom: 0; padding-bottom: max(18px, env(safe-area-inset-bottom));
@@ -108,6 +108,7 @@ body { font: 16px/1.45 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   background: rgba(28,26,24,.94); border: 1px solid rgba(255,255,255,.08); border-radius: 18px;
 }
 .notice .big { width: 44px; height: 44px; fill: none; stroke: var(--ember); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.notice[data-kind='gate'] .slash { display: none; }
 .notice h2 { margin: 8px 0 6px; font-size: 1.1rem; }
 .notice p { margin: 0 0 16px; color: #cfc6bb; font-size: .92rem; }
 .notice-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
@@ -147,4 +148,10 @@ body { font: 16px/1.45 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 .scanner.drag::after {
   content: 'Drop an image to scan'; position: absolute; inset: 12px; z-index: 6; display: grid; place-items: center;
   border: 3px dashed var(--ember); border-radius: 18px; background: rgba(0,0,0,.55); font-weight: 600;
+}
+
+.pwa-toast {
+  position: fixed; z-index: 10; left: 50%; top: calc(70px + env(safe-area-inset-top)); transform: translateX(-50%);
+  width: max-content; max-width: calc(100% - 32px); padding: 10px 16px; border-radius: 12px;
+  background: #fff; color: #111; font-size: .9rem; box-shadow: 0 8px 30px rgba(0,0,0,.4);
 }
