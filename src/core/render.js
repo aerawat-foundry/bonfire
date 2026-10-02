@@ -10,10 +10,10 @@ import { sha256 } from './sha256.js';
 import { makeQr } from './qr.js';
 import { QUIET, layout, plumeRows, encodeEmbers, capacity } from './ember.js';
 import { selectHotpoints } from './hotpoints.js';
+import { captions, captionHeightPerWidth, MARGINS, POSTER_RATIO } from './typography.js';
 
 const PAPER = '#f7f4ee';
 const GRID = '#d3c9bf';
-const INK = '#1e4a2b';
 const CHAR = [0x23, 0x1a, 0x14];
 const BURNT = [0x6a, 0x2e, 0x10];
 // Every ember fill stays below ~30% luminance so it always reads as "1".
@@ -50,11 +50,24 @@ export function renderPoster(text, opts = {}) {
 
   const rows = plumeRows(n);
   const plumeTop = rows[rows.length - 1].y;
-  const top = plumeTop - 7;
-  const bottom = n + (caption ? 17 : 9);
-  const height = bottom - top;
   const plumeWidth = Math.max(...rows.map((r) => 2 * r.hw + Math.abs(r.cx - n / 2) * 2));
-  const width = Math.max(height / 1.47, plumeWidth + 10, n + 2 * QUIET + 16);
+  // Artwork bounds; big type goes above and below (see typography.js).
+  const artTop = plumeTop - 4;
+  const artBottom = n + 9;
+  const minWidth = Math.max(plumeWidth + 10, n + 2 * QUIET + 16);
+  let width = minWidth;
+  let top = artTop - 3;
+  let bottom = artBottom;
+  let cap = null;
+  if (caption) {
+    // Type scales with the poster width, so solve for the width that gives a 2:3 poster.
+    const perWidth = captionHeightPerWidth() + 2 * (MARGINS.outer + MARGINS.gap);
+    width = Math.max(minWidth, (artBottom - artTop) / (POSTER_RATIO - perWidth));
+    cap = captions(width);
+    top = artTop - MARGINS.gap * width - cap.topHeight - MARGINS.outer * width;
+    bottom = artBottom + MARGINS.gap * width + cap.bottomHeight + MARGINS.outer * width;
+  }
+  const height = bottom - top;
   const left = n / 2 - width / 2;
 
   const flame = { x: n / 2, y: n + 5.0 };
@@ -209,7 +222,7 @@ export function renderPoster(text, opts = {}) {
   }
   // Drifting specks above the plume.
   for (let i = 0; i < n * 1.6; i++) {
-    const y = art.uniform(top + 2, plumeTop + 3);
+    const y = art.uniform(artTop + 1, plumeTop + 3);
     const x = n / 2 + art.uniform(-1, 1) * art.uniform(0.2, 1) * (plumeWidth / 2 + 3);
     if (dataCells.has(`${Math.floor(x)},${Math.floor(y)}`)) continue;
     const s = art.uniform(0.08, 0.3);
@@ -235,18 +248,10 @@ export function renderPoster(text, opts = {}) {
     `<ellipse cx="${f(flame.x + 0.1)}" cy="${f(flame.y + 1.6)}" rx="0.85" ry="0.32" fill="#5d5650"/>`,
   ].join('');
 
-  // --- caption (unchanged from the original poster) ----------------------------------
-  let captionSvg = '';
-  if (caption) {
-    const fs = Math.min(2.3, width * 0.034);
-    const serif = `font-family="Georgia, 'Times New Roman', 'Liberation Serif', serif"`;
-    const mono = `font-family="'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', monospace"`;
-    captionSvg = `
-  <g fill="${INK}" text-anchor="middle" font-size="${f(fs)}" ${serif}>
-    <text x="${f(n / 2)}" y="${f(n + 10.5)}">Humankind’s great tech began with fire.</text>
-    <text x="${f(n / 2)}" y="${f(n + 10.5 + fs * 1.3)}">This <tspan ${mono} font-size="${f(fs * 0.86)}">\`this.side.of.tech\`</tspan> is <tspan font-weight="bold">You</tspan>.</text>
-  </g>`;
-  }
+  // --- caption: one sentence above the artwork, one below ----------------------------
+  const captionSvg = cap
+    ? cap.top(n / 2, top + MARGINS.outer * width) + cap.bottom(n / 2, artBottom + MARGINS.gap * width)
+    : '';
 
   let xraySvg = '';
   if (xray) {
@@ -268,7 +273,7 @@ export function renderPoster(text, opts = {}) {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="${Math.round(width * 12)}" height="${Math.round(height * 12)}" shape-rendering="crispEdges">
   <title>Ember code</title>
   <desc>ember/v1 — standard QR (ECC H) with an ember code above it.</desc>
-  <defs>${defs.join('')}</defs>
+  <defs>${cap ? cap.style : ''}${defs.join('')}</defs>
   <rect x="${f(left)}" y="${f(top)}" width="${f(width)}" height="${f(height)}" fill="${PAPER}"/>
   <g shape-rendering="geometricPrecision">${glow.join('')}${flameSvg}</g>
   <g>${grid.join('')}</g>

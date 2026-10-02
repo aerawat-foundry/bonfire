@@ -41,6 +41,16 @@ npm test
 * **One page for every code.** Every `/ember/<code>` must serve `ember/index.html`. That rule is already included for Netlify and Cloudflare Pages (`public/_redirects`), for Vercel (`vercel.json`), and for `npm run dev` / `preview`. On another host, add the same rewrite.
 * **The address in the QR codes.** QR codes point at `https://thissideoftech.com`, even when the page is opened on localhost or a preview deploy. Set `VITE_SITE_ORIGIN` at build time to use another address.
 
+### Typography
+
+Posters are set in **Momo Trust Display** (Google Fonts), licensed under the
+SIL Open Font License 1.1 (`src/assets/fonts/OFL-MomoTrustDisplay.txt`):
+
+* "Humankind’s greatest tech began with fire." in three large lines above the artwork.
+* "This \`this.side.of.tech\` is You." below it, with "You" in ember orange.
+
+The font has a single weight. It is embedded in every poster (`src/core/font-momo.js`), so downloaded SVGs and PNGs keep their type.
+
 ### Installable app (PWA)
 
 The build includes a web app manifest and a service worker (`sw.js`,

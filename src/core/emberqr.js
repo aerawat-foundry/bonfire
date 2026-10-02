@@ -9,11 +9,11 @@
 import { Stream, utf8 } from './prng.js';
 import { sha256 } from './sha256.js';
 import { buildArtQr, minVersion } from './artqr.js';
+import { captions, captionHeightPerWidth, MARGINS, POSTER_RATIO } from './typography.js';
 
 const QUIET = 4;
 const PAPER = '#f7f4ee';
 const GRID = '#d3c9bf';
-const INK = '#1e4a2b';
 const CHAR = [0x22, 0x19, 0x13];
 const BURNT = [0x6e, 0x30, 0x10];
 // Every dark mark stays below ~30% luminance so it always reads as "dark".
@@ -228,25 +228,28 @@ export function renderEmberQr(text, o = {}) {
     `<ellipse cx="${f(flame.x + 0.08 * fs)}" cy="${f(flame.y + 1.28 * fs)}" rx="${f(0.62 * fs)}" ry="${f(0.24 * fs)}" fill="#5d5650"/>`,
   ].join('');
 
-  // --- poster frame -----------------------------------------------------------------
-  const bottom = n + QUIET + 3 * fs + (caption ? 9 : 3);
-  const height = bottom - (top - 3);
-  const width = Math.max(height / 1.42, n + 2 * QUIET + 14);
-  const left = n / 2 - width / 2;
-  const topY = top - 3;
-
+  // --- poster frame: big type above and below the artwork ---------------------------
+  const artTop = top - 1;
+  const artBottom = n + QUIET + 3 * fs + 1;
+  const artHeight = artBottom - artTop;
+  const minWidth = n + 2 * QUIET + 14;
+  let width = minWidth;
+  let topY = artTop - 3;
+  let bottom = artBottom + 2;
   let captionSvg = '';
+  let fontStyle = '';
   if (caption) {
-    const size = Math.min(2.6, width * 0.034);
-    const serif = `font-family="Georgia, 'Times New Roman', 'Liberation Serif', serif"`;
-    const mono = `font-family="'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', monospace"`;
-    const y0 = n + QUIET + 3 * fs + 2.4;
-    captionSvg = `
-  <g fill="${INK}" text-anchor="middle" font-size="${f(size)}" ${serif}>
-    <text x="${f(n / 2)}" y="${f(y0)}">Humankind’s great tech began with fire.</text>
-    <text x="${f(n / 2)}" y="${f(y0 + size * 1.3)}">This <tspan ${mono} font-size="${f(size * 0.86)}">\`this.side.of.tech\`</tspan> is <tspan font-weight="bold">You</tspan>.</text>
-  </g>`;
+    // Type scales with the poster width, so solve for the width that gives a 2:3 poster.
+    const perWidth = captionHeightPerWidth() + 2 * (MARGINS.outer + MARGINS.gap);
+    width = Math.max(minWidth, artHeight / (POSTER_RATIO - perWidth));
+    const cap = captions(width);
+    topY = artTop - MARGINS.gap * width - cap.topHeight - MARGINS.outer * width;
+    bottom = artBottom + MARGINS.gap * width + cap.bottomHeight + MARGINS.outer * width;
+    captionSvg = cap.top(n / 2, topY + MARGINS.outer * width) + cap.bottom(n / 2, artBottom + MARGINS.gap * width);
+    fontStyle = cap.style;
   }
+  const height = bottom - topY;
+  const left = n / 2 - width / 2;
 
   let xraySvg = '';
   if (o.xray) {
@@ -292,7 +295,7 @@ export function renderEmberQr(text, o = {}) {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${f(left)} ${f(topY)} ${f(width)} ${f(height)}" width="${Math.round(width * 10)}" height="${Math.round(height * 10)}" shape-rendering="crispEdges">
   <title>Ember QR</title>
   <desc>A standard QR code (version ${version}-${level}) drawn as embers.</desc>
-  <defs>${defs}</defs>
+  <defs>${fontStyle}${defs}</defs>
   <rect x="${f(left)}" y="${f(topY)}" width="${f(width)}" height="${f(height)}" fill="${PAPER}"/>
   <g shape-rendering="geometricPrecision">${aura}${glow.join('')}${flameSvg}</g>
   <g>${grid.join('')}</g>
