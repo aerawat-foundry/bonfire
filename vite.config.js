@@ -7,7 +7,7 @@ import { defineConfig } from 'vite';
 function serviceWorker() {
   const template = readFileSync(resolve(import.meta.dirname, 'src/sw-template.js'), 'utf8');
   return {
-    name: 'bonfire-service-worker',
+    name: 'ember-service-worker',
     apply: 'build',
     generateBundle(_, bundle) {
       const files = [...Object.keys(bundle), 'manifest.webmanifest',

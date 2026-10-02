@@ -1,7 +1,7 @@
 {
-  "name": "Bonfire Code",
-  "short_name": "Bonfire",
-  "description": "Generate and scan Bonfire codes: a standard QR burning inside a fire whose embers are a second code.",
+  "name": "Ember Code",
+  "short_name": "Ember",
+  "description": "Generate and scan Ember codes: a standard QR burning inside a fire whose embers are a second code.",
   "id": "./scan/",
   "start_url": "./scan/",
   "scope": "./",

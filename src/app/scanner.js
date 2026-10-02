@@ -46,11 +46,11 @@ function applyMode() {
   if (state.stream && !state.paused) setHint(idleHint());
 }
 
-const initialMode = new URLSearchParams(location.search).get('mode') || storage.get('bonfire.mode');
+const initialMode = new URLSearchParams(location.search).get('mode') || storage.get('ember.mode');
 modeSwitch.checked = initialMode !== 'standard';
 applyMode();
 modeSwitch.addEventListener('change', () => {
-  storage.set('bonfire.mode', isEmber() ? 'ember' : 'standard');
+  storage.set('ember.mode', isEmber() ? 'ember' : 'standard');
   applyMode();
   if (state.still) {
     scanFile(state.still); // re-read the same image in the new mode
@@ -160,8 +160,8 @@ function showSheet(r, { ember, note } = {}) {
       const h = r.hotpoints;
       layers.push(h.expected
         ? `<div class="layer"><h3>Hotpoints</h3><p>${h.hot}/${h.expected} glowing</p>
-            ${h.sealed ? badge('ok', 'sealed: genuine Bonfire print') : badge('bad', 'missing heat: possibly a flat copy')}</div>`
-        : `<div class="layer"><h3>Hotpoints</h3><p><small>Not checked: this QR was not made by Bonfire.</small></p></div>`);
+            ${h.sealed ? badge('ok', 'sealed: genuine Ember print') : badge('bad', 'missing heat: possibly a flat copy')}</div>`
+        : `<div class="layer"><h3>Hotpoints</h3><p><small>Not checked: this QR was not made by Ember.</small></p></div>`);
     }
   }
   $('layers').innerHTML = layers.join('');
@@ -233,7 +233,7 @@ function resetSteps() {
   }
   if (isAndroid) {
     return installed
-      ? 'On Android: long-press the Bonfire app icon ▸ App info ▸ Permissions ▸ Camera ▸ Allow, then try again.'
+      ? 'On Android: long-press the Ember app icon ▸ App info ▸ Permissions ▸ Camera ▸ Allow, then try again.'
       : 'On Android: tap the icon left of the address bar ▸ Permissions ▸ Camera ▸ Allow, then try again.';
   }
   return 'Click the camera (or lock/tune) icon in the address bar, set Camera to Allow, then try again.';

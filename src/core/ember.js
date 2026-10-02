@@ -27,7 +27,7 @@ export const rowCount = (n) => n + 8;
 /** Per-row plume geometry: { y, cx, hw, keep }. */
 export function plumeRows(n) {
   const h = rowCount(n);
-  const s = new Stream(`bonfire/v1/plume/${n}`);
+  const s = new Stream(`ember/v1/plume/${n}`);
   const out = [];
   for (let r = 0; r < h; r++) {
     const t = r / (h - 1);
@@ -44,7 +44,7 @@ const layoutCache = new Map();
 /** Data cells [x, y] for an N x N QR, in bit order (8 cells per byte). */
 export function layout(n) {
   if (layoutCache.has(n)) return layoutCache.get(n);
-  const s = new Stream(`bonfire/v1/layout/${n}`);
+  const s = new Stream(`ember/v1/layout/${n}`);
   const cells = [];
   for (const { y, cx, hw, keep } of plumeRows(n)) {
     for (let x = Math.floor(cx - hw); x < Math.ceil(cx + hw); x++) {
@@ -54,7 +54,7 @@ export function layout(n) {
     }
   }
   const groups = Math.floor(cells.length / 8);
-  const order = new Stream(`bonfire/v1/order/${n}`).shuffle([...Array(groups).keys()]);
+  const order = new Stream(`ember/v1/order/${n}`).shuffle([...Array(groups).keys()]);
   const result = order.flatMap((g) => cells.slice(g * 8, g * 8 + 8)).concat(cells.slice(groups * 8));
   layoutCache.set(n, result);
   return result;
@@ -68,7 +68,7 @@ export function capacity(n) {
 }
 
 function whitening(count) {
-  const ks = new Stream('bonfire/v1/whiten').bytes(Math.ceil(count / 8));
+  const ks = new Stream('ember/v1/whiten').bytes(Math.ceil(count / 8));
   return Array.from({ length: count }, (_, i) => (ks[i >> 3] >> (7 - (i & 7))) & 1);
 }
 

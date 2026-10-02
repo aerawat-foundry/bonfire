@@ -17,7 +17,7 @@ if (params.has('e')) emberEl.value = params.get('e');
 let current = null;
 
 function slug(s) {
-  return s.replace(/^https?:\/\//, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').slice(0, 40) || 'bonfire';
+  return s.replace(/^https?:\/\//, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').slice(0, 40) || 'ember';
 }
 
 function update() {
@@ -66,7 +66,7 @@ function download(blob, name) {
 
 $('dl-svg').addEventListener('click', () => {
   if (!current) return;
-  download(new Blob([current.out.svg], { type: 'image/svg+xml' }), `bonfire-${slug(current.text)}.svg`);
+  download(new Blob([current.out.svg], { type: 'image/svg+xml' }), `ember-${slug(current.text)}.svg`);
 });
 
 $('dl-png').addEventListener('click', async () => {
@@ -83,7 +83,7 @@ $('dl-png').addEventListener('click', async () => {
   canvas.height = h * scale;
   canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
   URL.revokeObjectURL(img.src);
-  canvas.toBlob((blob) => download(blob, `bonfire-${slug(current.text)}.png`), 'image/png');
+  canvas.toBlob((blob) => download(blob, `ember-${slug(current.text)}.png`), 'image/png');
 });
 
 update();

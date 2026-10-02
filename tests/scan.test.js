@@ -24,7 +24,7 @@ const CASES = [
   { width: 440, warp: 0.1, blur: 1.4, noise: 10, rotate: 90, seed: 3 },
 ];
 
-for (const text of ['https://this.side.of.tech', 'Hello fire', 'नमस्ते 🔥 bonfire']) {
+for (const text of ['https://this.side.of.tech', 'Hello fire', 'नमस्ते 🔥 ember']) {
   test(`scan: ${text}`, { skip: !haveRaster && 'python raster stack missing' }, async () => {
     const { svg, meta } = renderPoster(text);
     for (const c of CASES) {

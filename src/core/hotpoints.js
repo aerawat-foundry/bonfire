@@ -2,7 +2,7 @@
 //
 // They sit only on dark data modules (never on finder, timing, alignment or
 // format modules) and keep a dark rim, so an ordinary scanner still reads
-// them as dark. A Bonfire scanner recomputes where they must be and checks
+// them as dark. An Ember scanner recomputes where they must be and checks
 // for the heat, so a flat black reprint is detectable.
 
 import { Stream, utf8 } from './prng.js';
@@ -12,7 +12,7 @@ import { functionMask } from './qr.js';
 const MIN_GAP = 3;
 
 export function selectHotpoints(text, version, matrix) {
-  const seed = new Uint8Array([...utf8('bonfire/v1/hot/'), ...sha256(utf8(text))]);
+  const seed = new Uint8Array([...utf8('ember/v1/hot/'), ...sha256(utf8(text))]);
   const s = new Stream(seed);
   const count = 5 + s.below(4);
   const fn = functionMask(version);

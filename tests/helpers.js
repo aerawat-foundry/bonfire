@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { PNG } from 'pngjs';
 
-const dir = mkdtempSync(join(tmpdir(), 'bonfire-'));
+const dir = mkdtempSync(join(tmpdir(), 'ember-'));
 
 /** Rasterize SVG with cairosvg (Python), optionally warping/blurring with OpenCV. */
 export function rasterize(svg, { width = 900, warp = 0, blur = 0, noise = 0, rotate = 0, seed = 1 } = {}) {

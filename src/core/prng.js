@@ -1,6 +1,6 @@
 // Deterministic, language-neutral pseudo-random stream.
 //
-// Everything that is part of the Bonfire convention (ember layout, bit order,
+// Everything that is part of the Ember convention (ember layout, bit order,
 // whitening, hotpoint selection) draws from this stream instead of
 // Math.random, so any decoder reproduces the same choices:
 // block i of the stream is SHA-256(seed || uint32_be(i)).

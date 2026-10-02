@@ -1,9 +1,9 @@
-// Bonfire service worker. Generated at build time by vite.config.js, which
+// Ember service worker. Generated at build time by vite.config.js, which
 // fills in PRECACHE (every built file) and VERSION (a hash of that list).
 
 const VERSION = '__VERSION__';
 const PRECACHE = __PRECACHE__;
-const CACHE = `bonfire-${VERSION}`;
+const CACHE = `ember-${VERSION}`;
 const scoped = (path) => new URL(path, self.registration.scope).href;
 // Hosts often send "Vary: Origin"; module scripts carry an Origin header the
 // precache requests did not, which would otherwise make every lookup miss.
@@ -20,7 +20,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('bonfire-') && k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('ember-') && k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim()),
   );
 });

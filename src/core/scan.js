@@ -1,4 +1,4 @@
-// Bonfire scanner core. Works on raw RGBA pixels ({ data, width, height },
+// Ember scanner core. Works on raw RGBA pixels ({ data, width, height },
 // e.g. canvas ImageData), so it runs the same in the browser and in Node.
 //
 // 1. Read the standard QR with ZXing (WebAssembly).

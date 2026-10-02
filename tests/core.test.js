@@ -64,7 +64,7 @@ test('ember layout is stable and inside the plume above the quiet zone', () => {
 });
 
 test('embers round-trip with scattered bit errors', () => {
-  for (const text of ['hi', 'https://this.side.of.tech', 'नमस्ते 🔥 bonfire']) {
+  for (const text of ['hi', 'https://this.side.of.tech', 'नमस्ते 🔥 ember']) {
     const { size } = makeQr(text);
     const bits = encodeEmbers(size, text);
     const r = new Stream('flip');

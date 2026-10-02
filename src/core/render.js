@@ -46,7 +46,7 @@ export function renderPoster(text, opts = {}) {
   const bits = encodeEmbers(n, emberText);
   const hot = selectHotpoints(text, version, matrix);
   const hotSet = new Set(hot.map(([x, y]) => `${x},${y}`));
-  const art = new Stream(new Uint8Array([...utf8('bonfire/v1/art/'), ...sha256(utf8(text))]));
+  const art = new Stream(new Uint8Array([...utf8('ember/v1/art/'), ...sha256(utf8(text))]));
 
   const rows = plumeRows(n);
   const plumeTop = rows[rows.length - 1].y;
@@ -266,8 +266,8 @@ export function renderPoster(text, opts = {}) {
 
   const vb = `${f(left)} ${f(top)} ${f(width)} ${f(height)}`;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="${Math.round(width * 12)}" height="${Math.round(height * 12)}" shape-rendering="crispEdges">
-  <title>Bonfire code</title>
-  <desc>bonfire/v1 — standard QR (ECC H) with an ember code above it.</desc>
+  <title>Ember code</title>
+  <desc>ember/v1 — standard QR (ECC H) with an ember code above it.</desc>
   <defs>${defs.join('')}</defs>
   <rect x="${f(left)}" y="${f(top)}" width="${f(width)}" height="${f(height)}" fill="${PAPER}"/>
   <g shape-rendering="geometricPrecision">${glow.join('')}${flameSvg}</g>

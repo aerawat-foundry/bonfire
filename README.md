@@ -1,8 +1,8 @@
-# Bonfire
+# Ember
 
 > *Humankind's great tech began with fire. This `this.side.of.tech` is You.*
 
-A generator and scanner for **Bonfire codes**: posters where a standard QR code
+A generator and scanner for **Ember codes**: posters where a standard QR code
 burns at the base of a grid column and rises as a plume of embers.
 
 * **The QR is real.** It's a standard QR at error correction H, readable by
@@ -12,7 +12,7 @@ burns at the base of a grid column and rises as a plume of embers.
   own reversible convention ([SPEC.md](SPEC.md)). Every "random" particle is
   derived from the text.
 * **Hotpoints** are a few glowing modules inside the QR, placed by the text's
-  SHA-256 hash. The Bonfire scanner checks they glow, so a flat black
+  SHA-256 hash. The Ember scanner checks they glow, so a flat black
   reprint is flagged.
 
 ## Pages

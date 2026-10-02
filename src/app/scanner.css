@@ -67,7 +67,7 @@ body { font: 16px/1.45 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 .mode input:checked + .track .knob { transform: translateX(20px); }
 .scanner[data-mode='standard'] .mode .std, .scanner[data-mode='ember'] .mode .emb { opacity: 1; }
 
-/* viewfinder: square for a QR, tall for the whole bonfire */
+/* viewfinder: square for a QR, tall for the whole fire */
 .finder {
   position: absolute; z-index: 2; left: 50%; top: 47%; transform: translate(-50%, -50%);
   width: min(70vw, 46vh); height: min(70vw, 46vh);

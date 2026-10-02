@@ -1,6 +1,6 @@
-# Bonfire code — convention v1
+# Ember code — convention v1
 
-A Bonfire code is a poster-like image with three layers that share one module
+An Ember code is a poster-like image with three layers that share one module
 grid:
 
 1. **QR**: a standard QR code (ISO/IEC 18004, model 2, byte mode, UTF-8,
@@ -40,7 +40,7 @@ String seeds are UTF-8.
 
 ### Plume rows
 
-`H = N + 8` rows. Seed `"bonfire/v1/plume/{N}"`. For `r = 0 … H−1`, with
+`H = N + 8` rows. Seed `"ember/v1/plume/{N}"`. For `r = 0 … H−1`, with
 `t = r / (H − 1)`:
 
 ```
@@ -52,7 +52,7 @@ keep = 0.95 − 0.7·t^1.3
 
 ### Data cells
 
-Seed `"bonfire/v1/layout/{N}"`. For each row in order, for
+Seed `"ember/v1/layout/{N}"`. For each row in order, for
 `x = floor(cx − hw) … ceil(cx + hw) − 1`:
 
 ```
@@ -63,7 +63,7 @@ cell (x, y) is a data cell  ⇔  d ≤ 1 and u < keep · (1 − 0.65·d³)
 
 This gives the list `cells` in row order. Cut it into `G = floor(len/8)`
 runs of 8 consecutive cells. Shuffle `[0 … G−1]` with seed
-`"bonfire/v1/order/{N}"`. The **bit order** is the runs in shuffled order,
+`"ember/v1/order/{N}"`. The **bit order** is the runs in shuffled order,
 followed by the leftover `len mod 8` cells. Bit `i` lives in cell
 `order[i]`. Each byte's 8 bits sit next to each other, so local damage costs
 few bytes.
@@ -86,7 +86,7 @@ Reed-Solomon is over GF(2⁸), primitive polynomial `0x11D`, generator
 
 ### Whitening and drawing
 
-`w` = bits of the stream seeded `"bonfire/v1/whiten"` (MSB-first). Cell `i`
+`w` = bits of the stream seeded `"ember/v1/whiten"` (MSB-first). Cell `i`
 carries `b_i = code_bit_i ⊕ w_i`. Cells past `total·8` carry `w_i`, which is
 decoration that looks like data.
 
@@ -107,7 +107,7 @@ RS-decode (erasures welcome). Accept only if byte 0 is `0xB1` and the
 
 ## Hotpoints
 
-Seed: `"bonfire/v1/hot/" ‖ SHA-256(text)` (raw 32 bytes). `count = 5 + below(4)`.
+Seed: `"ember/v1/hot/" ‖ SHA-256(text)` (raw 32 bytes). `count = 5 + below(4)`.
 
 Candidates: dark QR modules that are not function patterns (finders plus
 separators and format areas, timing, alignment, version info), in row-major
@@ -122,4 +122,4 @@ modules. Missing heat suggests a flat reprint.
 ## Versioning
 
 `0xB1` marks v1. Any change to the constants above needs a new magic byte and
-new seed prefixes (`bonfire/v2/…`).
+new seed prefixes (`ember/v2/…`).
