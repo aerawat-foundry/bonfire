@@ -1,5 +1,6 @@
 import { renderPoster } from '../core/render.js';
 import { utf8 } from '../core/prng.js';
+import { typeControls } from './typecontrols.js';
 import { setupInstall } from './pwa.js';
 
 const $ = (id) => document.getElementById(id);
@@ -15,6 +16,7 @@ if (params.has('t')) textEl.value = params.get('t');
 if (params.has('e')) emberEl.value = params.get('e');
 
 let current = null;
+const type = typeControls(document.getElementById('type-controls'), () => update());
 
 function slug(s) {
   return s.replace(/^https?:\/\//, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').slice(0, 40) || 'ember';
@@ -24,7 +26,7 @@ function update() {
   const text = textEl.value.trim();
   const emberText = emberEl.value.trim() || undefined;
   try {
-    const opts = { emberText };
+    const opts = { emberText, ...type.value() };
     const out = renderPoster(text, opts);
     current = { text, opts, out };
     posterEl.innerHTML = xrayEl.checked ? renderPoster(text, { ...opts, xray: true }).svg : out.svg;
@@ -38,6 +40,7 @@ function update() {
       <dt>Hotpoints</dt><dd>${meta.hotpoints.length}</dd>`;
     const q = new URLSearchParams({ t: text });
     if (emberText) q.set('e', emberText);
+    for (const [k, v] of type.params()) q.set(k, v);
     history.replaceState(null, '', `?${q}`);
   } catch (e) {
     current = null;
@@ -86,5 +89,5 @@ $('dl-png').addEventListener('click', async () => {
   canvas.toBlob((blob) => download(blob, `ember-${slug(current.text)}.png`), 'image/png');
 });
 
-update();
+type.ready.then(update);
 setupInstall(document.getElementById('install'));

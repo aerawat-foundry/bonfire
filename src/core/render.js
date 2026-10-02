@@ -33,6 +33,10 @@ const rect = (x, y, w, h, attrs) =>
  * @param {object} [opts]
  * @param {string} [opts.emberText] text for the ember layer (defaults to `text`)
  * @param {boolean} [opts.caption]  draw the two-line caption (default true)
+ * @param {string} [opts.font]      caption font id (see fonts.js)
+ * @param {string} [opts.typeSize]  'small' | 'medium' | 'large'
+ * @param {string} [opts.topText]  sentence above the artwork (see typography.js)
+ * @param {string} [opts.bottomText]  sentence below it
  * @param {boolean} [opts.xray]     overlay the convention: data cells, quiet
  *                                  zone and hotpoints (for explaining, not printing)
  */
@@ -61,9 +65,10 @@ export function renderPoster(text, opts = {}) {
   let cap = null;
   if (caption) {
     // Type scales with the poster width, so solve for the width that gives a 2:3 poster.
-    const perWidth = captionHeightPerWidth() + 2 * (MARGINS.outer + MARGINS.gap);
+    const type = { font: opts.font, typeSize: opts.typeSize, topText: opts.topText, bottomText: opts.bottomText };
+    const perWidth = captionHeightPerWidth(type) + 2 * (MARGINS.outer + MARGINS.gap);
     width = Math.max(minWidth, (artBottom - artTop) / (POSTER_RATIO - perWidth));
-    cap = captions(width);
+    cap = captions(width, type);
     top = artTop - MARGINS.gap * width - cap.topHeight - MARGINS.outer * width;
     bottom = artBottom + MARGINS.gap * width + cap.bottomHeight + MARGINS.outer * width;
   }

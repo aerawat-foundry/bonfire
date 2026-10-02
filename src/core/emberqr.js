@@ -83,6 +83,10 @@ function shapeFn(n, seed) {
  * @param {number} [o.burn]   share of each block's correction budget spent on the picture (default 0.35)
  * @param {boolean} [o.xray]  overlay which modules were steered (teal) and burned (magenta)
  * @param {boolean} [o.caption]
+ * @param {string} [o.font]      caption font id (see fonts.js)
+ * @param {string} [o.typeSize]  'small' | 'medium' | 'large'
+ * @param {string} [o.topText]  sentence above the artwork (see typography.js)
+ * @param {string} [o.bottomText]  sentence below it
  * @param {boolean} [o.blendAlignment]  draw alignment squares in the ember style
  *                  instead of solid (scanners locate them approximately anyway)
  * @param {boolean} [o.hideTiming]  leave the timing dots outside the plume undrawn
@@ -240,9 +244,10 @@ export function renderEmberQr(text, o = {}) {
   let fontStyle = '';
   if (caption) {
     // Type scales with the poster width, so solve for the width that gives a 2:3 poster.
-    const perWidth = captionHeightPerWidth() + 2 * (MARGINS.outer + MARGINS.gap);
+    const type = { font: o.font, typeSize: o.typeSize, topText: o.topText, bottomText: o.bottomText };
+    const perWidth = captionHeightPerWidth(type) + 2 * (MARGINS.outer + MARGINS.gap);
     width = Math.max(minWidth, artHeight / (POSTER_RATIO - perWidth));
-    const cap = captions(width);
+    const cap = captions(width, type);
     topY = artTop - MARGINS.gap * width - cap.topHeight - MARGINS.outer * width;
     bottom = artBottom + MARGINS.gap * width + cap.bottomHeight + MARGINS.outer * width;
     captionSvg = cap.top(n / 2, topY + MARGINS.outer * width) + cap.bottom(n / 2, artBottom + MARGINS.gap * width);

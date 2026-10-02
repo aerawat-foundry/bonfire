@@ -3,6 +3,7 @@ import wasmUrl from 'zxing-wasm/reader/zxing_reader.wasm?url';
 import { renderEmberQr } from '../core/emberqr.js';
 import { CODE_PATTERN } from '../core/name.js';
 import { emberUrl, recallName } from './site.js';
+import { typeControls } from './typecontrols.js';
 import './pwa.js'; // service worker
 
 prepareZXingModule({
@@ -31,9 +32,16 @@ function show() {
     : 'Scan the poster with any phone camera to come back to this page.';
   $('link').value = url;
 
-  const { svg } = renderEmberQr(url, { hideTiming: true });
-  $('poster').innerHTML = svg;
-  check(svg, url);
+  let svg = '';
+  const type = typeControls($('type-controls'), () => render());
+  function render() {
+    svg = renderEmberQr(url, { hideTiming: true, ...type.value() }).svg;
+    $('poster').innerHTML = svg;
+    const q = new URLSearchParams(type.params());
+    history.replaceState(null, '', `${location.pathname}${q.size ? `?${q}` : ''}`);
+    check(svg, url);
+  }
+  type.ready.then(render);
 
   const fileBase = `ember-${code}`;
   $('copy').addEventListener('click', async () => {
@@ -69,7 +77,9 @@ async function toCanvas(svg, width) {
 }
 
 /** Make sure this poster really leads back here before anyone prints it. */
+let checkToken = 0;
 async function check(svg, url) {
+  const token = ++checkToken;
   const el = $('scancheck');
   el.className = 'scancheck wait';
   el.textContent = 'Checking that it scans…';
@@ -77,6 +87,7 @@ async function check(svg, url) {
     const canvas = await toCanvas(svg, 900);
     const data = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
     const res = await readBarcodes(data, { formats: ['QRCode'], tryHarder: true, maxNumberOfSymbols: 1 });
+    if (token !== checkToken) return;
     const ok = res[0]?.text === url;
     el.className = `scancheck ${ok ? 'ok' : 'bad'}`;
     el.textContent = ok ? '✓ Scans back to this page' : '⚠ This poster did not scan back to its link';

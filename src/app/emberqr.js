@@ -3,6 +3,7 @@ import wasmUrl from 'zxing-wasm/reader/zxing_reader.wasm?url';
 import { renderEmberQr } from '../core/emberqr.js';
 import { minVersion } from '../core/artqr.js';
 import { utf8 } from '../core/prng.js';
+import { typeControls } from './typecontrols.js';
 import './pwa.js'; // service worker
 
 prepareZXingModule({
@@ -32,6 +33,7 @@ if (params.has('ba')) $('blend-align').checked = params.get('ba') === '1';
 let wantedVersion = params.has('v') ? Number(params.get('v')) : null;
 
 let current = null;
+const type = typeControls($('type-controls'), () => update());
 let checkToken = 0;
 
 function slug(s) {
@@ -53,6 +55,7 @@ function update() {
       burn: Number(burnEl.value) / 100,
       hideTiming: $('hide-timing').checked,
       blendAlignment: $('blend-align').checked,
+      ...type.value(),
     };
     const out = renderEmberQr(text, opts);
     current = { text, out };
@@ -70,6 +73,7 @@ function update() {
       <dt>Mask</dt><dd>${m.mask} (chosen for the best picture)</dd>`;
     const q = new URLSearchParams({ t: text, v: m.version, l: m.level, b: burnEl.value,
       ht: $('hide-timing').checked ? 1 : 0, ba: $('blend-align').checked ? 1 : 0 });
+    for (const [k, v] of type.params()) q.set(k, v);
     history.replaceState(null, '', `?${q}`);
     scanCheck(out.svg, text);
   } catch (e) {
@@ -154,4 +158,4 @@ $('dl-png').addEventListener('click', async () => {
   canvas.toBlob((blob) => download(blob, `ember-qr-${slug(current.text)}.png`), 'image/png');
 });
 
-update();
+type.ready.then(update);
