@@ -148,8 +148,11 @@ look like the poster's plume of embers. Any QR reader decodes it.
    a plume (densest at its base, dissolving upward and outward). Outside the
    plume the target is light. Modules outside the plume, especially near the
    square's edges, carry the highest weights, so the square outline disappears.
-6. **Drawing.** Finders and (by default) alignment patterns are solid cells.
-   Column modules are full cells or outlined cells. Plume modules are embers of
-   size 0.66–0.92 covering the centre, or a dissolving grid. Remaining dark
-   modules outside the plume are 0.5–0.62 ash specks. Timing dots outside the
-   plume can be omitted (decoders derive the grid from the finders).
+6. **Drawing.** Finders are always solid cells. By default the alignment
+   patterns are drawn in the ember style (dots), like the modules around them,
+   and the timing dots outside the plume are left undrawn: decoders locate the
+   grid from the finders and only estimate the rest. Column modules are full
+   cells or outlined cells. Plume modules are embers of size 0.66–0.92 covering
+   the centre, or a dissolving grid. Remaining dark modules outside the plume
+   are 0.5–0.62 ash specks. Measured cost of blending at the defaults: no
+   moderate case lost, and at most 1 in 16 of the most extreme distortions.

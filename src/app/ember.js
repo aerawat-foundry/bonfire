@@ -35,7 +35,7 @@ function show() {
   $('link').value = url;
 
   // The artwork depends only on the link; the page around it is redesigned freely.
-  const art = renderEmberQr(url, { hideTiming: true }).art;
+  const art = renderEmberQr(url).art;
   const posterEl = $('poster');
   let svg = '';
   let timer;

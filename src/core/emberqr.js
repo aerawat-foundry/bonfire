@@ -85,9 +85,9 @@ function shapeFn(n, seed) {
  * @param {object} [o.top]     rich-text block above the artwork (see richtext.js)
  * @param {object} [o.bottom]  rich-text block below the artwork
  * @param {object} [o.layout]  { artScale, artOffset } (see compose.js)
- * @param {boolean} [o.blendAlignment]  draw alignment squares in the ember style
+ * @param {boolean} [o.blendAlignment]  draw alignment squares in the ember style (default true)
  *                  instead of solid (scanners locate them approximately anyway)
- * @param {boolean} [o.hideTiming]  leave the timing dots outside the plume undrawn
+ * @param {boolean} [o.hideTiming]  leave the timing dots outside the plume undrawn (default true)
  */
 export function renderEmberQr(text, o = {}) {
   if (!text) throw new Error('Enter some text to burn.');
@@ -97,6 +97,10 @@ export function renderEmberQr(text, o = {}) {
   const version = clamp(o.version ?? Math.max(min, 12), min, 40);
   const burn = o.burn ?? 0.35;
   const caption = o.caption ?? true;
+  // By default the code hides its timing dots and blends its alignment
+  // squares into the embers, so it reads as embers rather than a QR.
+  const hideTiming = o.hideTiming ?? true;
+  const blendAlignment = o.blendAlignment ?? true;
   const seedBytes = sha256(new Uint8Array([...utf8('ember/qr/v1/'), ...bytes]));
   const seed = (seedBytes[0] << 24) | (seedBytes[1] << 16) | (seedBytes[2] << 8) | seedBytes[3];
   const art = new Stream(seedBytes);
@@ -136,8 +140,8 @@ export function renderEmberQr(text, o = {}) {
       const heat = heatAt(c + 0.5, r + 0.5);
       const jitter = () => art.uniform(-8, 8);
 
-      if (k === 'timing' && dark && o.hideTiming && s.zone === 'outside') continue;
-      if (k === 'finder' || (k === 'alignment' && !o.blendAlignment)) {
+      if (k === 'timing' && dark && hideTiming && s.zone === 'outside') continue;
+      if (k === 'finder' || (k === 'alignment' && !blendAlignment)) {
         // Scanners find these by their solid runs: keep them whole cells.
         if (dark) {
           const base = mix(CHAR, BURNT, heat ** 1.4);

@@ -77,7 +77,7 @@ test('Ember QR posters scan as standard QR codes', { skip: !haveRaster && 'pytho
   const { renderEmberQr } = await import('../src/core/emberqr.js');
   const text = 'https://this.side.of.tech';
   for (const opts of [{}, { level: 'M', version: 10 }, { level: 'H', burn: 0.6 }]) {
-    const { svg } = renderEmberQr(text, { hideTiming: true, ...opts });
+    const { svg } = renderEmberQr(text, opts);
     for (const c of [{ width: 1100 }, { width: 600 }, { warp: 0.06, blur: 1.1, noise: 6, rotate: 10 }]) {
       const r = await scanImage(rasterize(svg, c), { ember: false });
       assert.equal(r?.text, text, `${JSON.stringify(opts)} ${JSON.stringify(c)}`);
