@@ -10,9 +10,8 @@ import { sha256 } from './sha256.js';
 import { makeQr } from './qr.js';
 import { QUIET, layout, plumeRows, encodeEmbers, capacity } from './ember.js';
 import { selectHotpoints } from './hotpoints.js';
-import { captions, captionHeightPerWidth, MARGINS, POSTER_RATIO } from './typography.js';
+import { composePoster } from './compose.js';
 
-const PAPER = '#f7f4ee';
 const GRID = '#d3c9bf';
 const CHAR = [0x23, 0x1a, 0x14];
 const BURNT = [0x6a, 0x2e, 0x10];
@@ -32,11 +31,10 @@ const rect = (x, y, w, h, attrs) =>
  * @param {string} text           text for the standard QR
  * @param {object} [opts]
  * @param {string} [opts.emberText] text for the ember layer (defaults to `text`)
- * @param {boolean} [opts.caption]  draw the two-line caption (default true)
- * @param {string} [opts.font]      caption font id (see fonts.js)
- * @param {string} [opts.typeSize]  'small' | 'medium' | 'large'
- * @param {string} [opts.topText]  sentence above the artwork (see typography.js)
- * @param {string} [opts.bottomText]  sentence below it
+ * @param {boolean} [opts.caption]  draw the text blocks (default true)
+ * @param {object} [opts.top]     rich-text block above the artwork (see richtext.js)
+ * @param {object} [opts.bottom]  rich-text block below the artwork
+ * @param {object} [opts.layout]  { artScale, artOffset } (see compose.js)
  * @param {boolean} [opts.xray]     overlay the convention: data cells, quiet
  *                                  zone and hotpoints (for explaining, not printing)
  */
@@ -55,25 +53,11 @@ export function renderPoster(text, opts = {}) {
   const rows = plumeRows(n);
   const plumeTop = rows[rows.length - 1].y;
   const plumeWidth = Math.max(...rows.map((r) => 2 * r.hw + Math.abs(r.cx - n / 2) * 2));
-  // Artwork bounds; big type goes above and below (see typography.js).
+  // Artwork bounds; the page (text blocks, placement) is composed around it.
   const artTop = plumeTop - 4;
   const artBottom = n + 9;
-  const minWidth = Math.max(plumeWidth + 10, n + 2 * QUIET + 16);
-  let width = minWidth;
-  let top = artTop - 3;
-  let bottom = artBottom;
-  let cap = null;
-  if (caption) {
-    // Type scales with the poster width, so solve for the width that gives a 2:3 poster.
-    const type = { font: opts.font, typeSize: opts.typeSize, topText: opts.topText, bottomText: opts.bottomText };
-    const perWidth = captionHeightPerWidth(type) + 2 * (MARGINS.outer + MARGINS.gap);
-    width = Math.max(minWidth, (artBottom - artTop) / (POSTER_RATIO - perWidth));
-    cap = captions(width, type);
-    top = artTop - MARGINS.gap * width - cap.topHeight - MARGINS.outer * width;
-    bottom = artBottom + MARGINS.gap * width + cap.bottomHeight + MARGINS.outer * width;
-  }
-  const height = bottom - top;
-  const left = n / 2 - width / 2;
+  const artWidth = Math.max(plumeWidth + 10, n + 2 * QUIET + 16);
+  const box = { x: n / 2 - artWidth / 2, y: artTop, w: artWidth, h: artBottom - artTop };
 
   const flame = { x: n / 2, y: n + 5.0 };
   const heatAt = (x, y) => clamp(1 - Math.hypot(x - flame.x, y - (n + 1.5)) / (0.75 * n), 0, 1);
@@ -253,11 +237,6 @@ export function renderPoster(text, opts = {}) {
     `<ellipse cx="${f(flame.x + 0.1)}" cy="${f(flame.y + 1.6)}" rx="0.85" ry="0.32" fill="#5d5650"/>`,
   ].join('');
 
-  // --- caption: one sentence above the artwork, one below ----------------------------
-  const captionSvg = cap
-    ? cap.top(n / 2, top + MARGINS.outer * width) + cap.bottom(n / 2, artBottom + MARGINS.gap * width)
-    : '';
-
   let xraySvg = '';
   if (xray) {
     const parts = [];
@@ -274,20 +253,27 @@ export function renderPoster(text, opts = {}) {
     xraySvg = `\n  <g class="xray">${parts.join('')}</g>`;
   }
 
-  const vb = `${f(left)} ${f(top)} ${f(width)} ${f(height)}`;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="${Math.round(width * 12)}" height="${Math.round(height * 12)}" shape-rendering="crispEdges">
-  <title>Ember code</title>
-  <desc>ember/v1 — standard QR (ECC H) with an ember code above it.</desc>
-  <defs>${cap ? cap.style : ''}${defs.join('')}</defs>
-  <rect x="${f(left)}" y="${f(top)}" width="${f(width)}" height="${f(height)}" fill="${PAPER}"/>
-  <g shape-rendering="geometricPrecision">${glow.join('')}${flameSvg}</g>
+  const artwork = {
+    box,
+    title: 'Ember code',
+    desc: 'ember/v1 — standard QR (ECC H) with an ember code above it.',
+    defs: defs.join(''),
+    body: `<g shape-rendering="geometricPrecision">${glow.join('')}${flameSvg}</g>
   <g>${grid.join('')}</g>
   <g>${solid.join('')}</g>
-  <g>${front.join('')}</g>${captionSvg}${xraySvg}
-</svg>`;
+  <g>${front.join('')}</g>${xraySvg}`,
+  };
+  const none = { paragraphs: [] };
+  const page = composePoster(artwork, {
+    top: caption ? opts.top : none,
+    bottom: caption ? opts.bottom : none,
+    layout: opts.layout,
+  });
 
   return {
-    svg,
+    svg: page.svg,
+    art: artwork,
+    artRect: page.artRect,
     meta: {
       version,
       size: n,

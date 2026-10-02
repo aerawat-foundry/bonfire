@@ -2,7 +2,7 @@
 // font is registered for embedding into posters (so downloads keep their
 // type) and added to the page (for the live preview).
 
-import { registerFontData, fontById } from '../core/typography.js';
+import { registerFontData, fontById } from '../core/richtext.js';
 
 const urls = import.meta.glob('../assets/fonts/*.woff2', { query: '?url', import: 'default', eager: true });
 const loading = new Map();

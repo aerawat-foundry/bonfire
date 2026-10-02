@@ -1,6 +1,8 @@
 import { renderPoster } from '../core/render.js';
+import { composePoster } from '../core/compose.js';
 import { utf8 } from '../core/prng.js';
-import { typeControls } from './typecontrols.js';
+import { designer } from './designer.js';
+import { downloadSvg, downloadPng, slug } from './export.js';
 import { setupInstall } from './pwa.js';
 
 const $ = (id) => document.getElementById(id);
@@ -15,21 +17,19 @@ const params = new URLSearchParams(location.search);
 if (params.has('t')) textEl.value = params.get('t');
 if (params.has('e')) emberEl.value = params.get('e');
 
-let current = null;
-const type = typeControls(document.getElementById('type-controls'), () => update());
+// The artwork is costly; the page around it (text, placement) is cheap. Keep
+// the artwork and recompose the page on design changes.
+let art = null; // { key, out, xray }
+let current = null; // { text, svg }
+const design = designer($('designer'), () => paint());
+design.attachPoster(posterEl);
 
-function slug(s) {
-  return s.replace(/^https?:\/\//, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').slice(0, 40) || 'ember';
-}
-
-function update() {
+function buildArt() {
   const text = textEl.value.trim();
   const emberText = emberEl.value.trim() || undefined;
   try {
-    const opts = { emberText, ...type.value() };
-    const out = renderPoster(text, opts);
-    current = { text, opts, out };
-    posterEl.innerHTML = xrayEl.checked ? renderPoster(text, { ...opts, xray: true }).svg : out.svg;
+    const out = renderPoster(text, { emberText });
+    art = { text, emberText, out, xray: xrayEl.checked ? renderPoster(text, { emberText, xray: true }) : null };
     errorEl.hidden = true;
     const { meta } = out;
     const used = utf8(meta.emberText).length;
@@ -38,14 +38,28 @@ function update() {
       <dt>Embers</dt><dd>${meta.emberCells} ember cells · ${used}/${meta.capacity.maxPayload} bytes
         <div class="meter"><i style="width:${Math.min(100, (100 * used) / meta.capacity.maxPayload)}%"></i></div></dd>
       <dt>Hotpoints</dt><dd>${meta.hotpoints.length}</dd>`;
-    const q = new URLSearchParams({ t: text });
-    if (emberText) q.set('e', emberText);
-    for (const [k, v] of type.params()) q.set(k, v);
-    history.replaceState(null, '', `?${q}`);
   } catch (e) {
-    current = null;
+    art = null;
     errorEl.textContent = e.message;
     errorEl.hidden = false;
+  }
+  paint();
+}
+
+function paint() {
+  if (!art) {
+    current = null;
+  } else {
+    const d = design.value();
+    const page = composePoster(art.out.art, d);
+    current = { text: art.text, svg: page.svg };
+    posterEl.querySelector('svg')?.remove();
+    posterEl.insertAdjacentHTML('afterbegin', art.xray ? composePoster(art.xray.art, d).svg : page.svg);
+    design.setArtRect(page.artRect);
+    const q = new URLSearchParams({ t: art.text });
+    if (art.emberText) q.set('e', art.emberText);
+    for (const [k, v] of design.params()) q.set(k, v);
+    history.replaceState(null, '', `?${q}`);
   }
   for (const b of [$('dl-svg'), $('dl-png')]) b.disabled = !current;
 }
@@ -53,41 +67,14 @@ function update() {
 let timer;
 const schedule = () => {
   clearTimeout(timer);
-  timer = setTimeout(update, 120);
+  timer = setTimeout(buildArt, 120);
 };
 textEl.addEventListener('input', schedule);
 emberEl.addEventListener('input', schedule);
-xrayEl.addEventListener('change', update);
+xrayEl.addEventListener('change', buildArt);
 
-function download(blob, name) {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = name;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-}
+$('dl-svg').addEventListener('click', () => current && downloadSvg(current.svg, `ember-${slug(current.text)}.svg`));
+$('dl-png').addEventListener('click', () => current && downloadPng(current.svg, `ember-${slug(current.text)}.png`));
 
-$('dl-svg').addEventListener('click', () => {
-  if (!current) return;
-  download(new Blob([current.out.svg], { type: 'image/svg+xml' }), `ember-${slug(current.text)}.svg`);
-});
-
-$('dl-png').addEventListener('click', async () => {
-  if (!current) return;
-  const { svg } = current.out;
-  const w = +svg.match(/ width="(\d+)"/)[1];
-  const h = +svg.match(/ height="(\d+)"/)[1];
-  const scale = 3; // ~36 px per module: print-ready at A3 and up
-  const img = new Image();
-  img.src = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
-  await img.decode();
-  const canvas = document.createElement('canvas');
-  canvas.width = w * scale;
-  canvas.height = h * scale;
-  canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-  URL.revokeObjectURL(img.src);
-  canvas.toBlob((blob) => download(blob, `ember-${slug(current.text)}.png`), 'image/png');
-});
-
-type.ready.then(update);
+design.ready.then(buildArt);
 setupInstall(document.getElementById('install'));

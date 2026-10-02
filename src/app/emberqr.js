@@ -3,7 +3,9 @@ import wasmUrl from 'zxing-wasm/reader/zxing_reader.wasm?url';
 import { renderEmberQr } from '../core/emberqr.js';
 import { minVersion } from '../core/artqr.js';
 import { utf8 } from '../core/prng.js';
-import { typeControls } from './typecontrols.js';
+import { composePoster } from '../core/compose.js';
+import { designer } from './designer.js';
+import { downloadSvg, downloadPng, svgToCanvas, slug } from './export.js';
 import './pwa.js'; // service worker
 
 prepareZXingModule({
@@ -32,13 +34,13 @@ if (params.has('ht')) $('hide-timing').checked = params.get('ht') === '1';
 if (params.has('ba')) $('blend-align').checked = params.get('ba') === '1';
 let wantedVersion = params.has('v') ? Number(params.get('v')) : null;
 
-let current = null;
-const type = typeControls($('type-controls'), () => update());
+// The artwork (solving the QR) is costly; the page around it is cheap. Keep
+// the artwork and recompose the page on design changes.
+let art = null; // { text, out, xray, settings }
+let current = null; // { text, svg }
 let checkToken = 0;
-
-function slug(s) {
-  return s.replace(/^https?:\/\//, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').slice(0, 40) || 'ember';
-}
+const design = designer($('designer'), () => paint());
+design.attachPoster(posterEl);
 
 function update() {
   const text = textEl.value.trim();
@@ -55,11 +57,9 @@ function update() {
       burn: Number(burnEl.value) / 100,
       hideTiming: $('hide-timing').checked,
       blendAlignment: $('blend-align').checked,
-      ...type.value(),
     };
     const out = renderEmberQr(text, opts);
-    current = { text, out };
-    posterEl.innerHTML = $('xray').checked ? renderEmberQr(text, { ...opts, xray: true }).svg : out.svg;
+    art = { text, out, xray: $('xray').checked ? renderEmberQr(text, { ...opts, xray: true }) : null };
     errorEl.hidden = true;
     const m = out.meta;
     $('size-out').textContent = `version ${m.version} · ${m.size}×${m.size} modules`;
@@ -71,32 +71,38 @@ function update() {
       <dt>Burned</dt><dd>${m.burnedCodewords} of ${m.correctable} repairable codewords
         (${m.correctable - m.burnedCodewords} left as margin)</dd>
       <dt>Mask</dt><dd>${m.mask} (chosen for the best picture)</dd>`;
-    const q = new URLSearchParams({ t: text, v: m.version, l: m.level, b: burnEl.value,
-      ht: $('hide-timing').checked ? 1 : 0, ba: $('blend-align').checked ? 1 : 0 });
-    for (const [k, v] of type.params()) q.set(k, v);
-    history.replaceState(null, '', `?${q}`);
-    scanCheck(out.svg, text);
+    art.settings = { t: text, v: m.version, l: m.level, b: burnEl.value,
+      ht: $('hide-timing').checked ? 1 : 0, ba: $('blend-align').checked ? 1 : 0 };
   } catch (e) {
-    current = null;
+    art = null;
     errorEl.textContent = e.message;
     errorEl.hidden = false;
     checkEl.textContent = '';
   }
-  for (const b of [$('dl-svg'), $('dl-png')]) b.disabled = !current;
+  paint();
 }
 
-async function svgToCanvas(svg, width) {
-  const w = +svg.match(/ width="(\d+)"/)[1];
-  const h = +svg.match(/ height="(\d+)"/)[1];
-  const img = new Image();
-  img.src = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
-  await img.decode();
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = Math.round((h / w) * width);
-  canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-  URL.revokeObjectURL(img.src);
-  return canvas;
+let checkTimer;
+function paint() {
+  if (!art) {
+    current = null;
+  } else {
+    const d = design.value();
+    const page = composePoster(art.out.art, d);
+    current = { text: art.text, svg: page.svg };
+    posterEl.querySelector('svg')?.remove();
+    posterEl.insertAdjacentHTML('afterbegin', art.xray ? composePoster(art.xray.art, d).svg : page.svg);
+    design.setArtRect(page.artRect);
+    const q = new URLSearchParams(art.settings);
+    for (const [k, v] of design.params()) q.set(k, v);
+    history.replaceState(null, '', `?${q}`);
+    // Re-check scanning once the design settles (dragging repaints often).
+    clearTimeout(checkTimer);
+    checkEl.className = 'scancheck wait';
+    checkEl.textContent = 'Checking that it scans…';
+    checkTimer = setTimeout(() => scanCheck(page.svg, art.text), 350);
+  }
+  for (const b of [$('dl-svg'), $('dl-png')]) b.disabled = !current;
 }
 
 /** Decode the design right here, at a large and a small size. */
@@ -117,7 +123,7 @@ async function scanCheck(svg, text) {
     checkEl.className = `scancheck ${passed === sizes.length ? 'ok' : 'bad'}`;
     checkEl.textContent = passed === sizes.length
       ? '✓ Scans as a standard QR (checked at two sizes)'
-      : `⚠ Scanned at ${passed} of ${sizes.length} sizes: lower the burn, raise error correction, or turn off blending`;
+      : `⚠ Scanned at ${passed} of ${sizes.length} sizes: make the ember bigger, lower the burn, raise error correction, or turn off blending`;
   } catch (e) {
     if (token === checkToken) {
       checkEl.className = 'scancheck bad';
@@ -141,21 +147,7 @@ for (const el of document.querySelectorAll('input[name="level"], #hide-timing, #
   el.addEventListener('change', update);
 }
 
-function download(blob, name) {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = name;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-}
-$('dl-svg').addEventListener('click', () => {
-  if (current) download(new Blob([current.out.svg], { type: 'image/svg+xml' }), `ember-qr-${slug(current.text)}.svg`);
-});
-$('dl-png').addEventListener('click', async () => {
-  if (!current) return;
-  const w = +current.out.svg.match(/ width="(\d+)"/)[1];
-  const canvas = await svgToCanvas(current.out.svg, w * 3);
-  canvas.toBlob((blob) => download(blob, `ember-qr-${slug(current.text)}.png`), 'image/png');
-});
+$('dl-svg').addEventListener('click', () => current && downloadSvg(current.svg, `ember-qr-${slug(current.text)}.svg`));
+$('dl-png').addEventListener('click', () => current && downloadPng(current.svg, `ember-qr-${slug(current.text)}.png`));
 
-type.ready.then(update);
+design.ready.then(update);

@@ -1,9 +1,11 @@
 import { prepareZXingModule, readBarcodes } from 'zxing-wasm/reader';
 import wasmUrl from 'zxing-wasm/reader/zxing_reader.wasm?url';
 import { renderEmberQr } from '../core/emberqr.js';
+import { composePoster } from '../core/compose.js';
 import { CODE_PATTERN } from '../core/name.js';
 import { emberUrl, recallName } from './site.js';
-import { typeControls } from './typecontrols.js';
+import { designer } from './designer.js';
+import { downloadSvg, downloadPng, svgToCanvas } from './export.js';
 import './pwa.js'; // service worker
 
 prepareZXingModule({
@@ -32,16 +34,27 @@ function show() {
     : 'Scan the poster with any phone camera to come back to this page.';
   $('link').value = url;
 
+  // The artwork depends only on the link; the page around it is redesigned freely.
+  const art = renderEmberQr(url, { hideTiming: true }).art;
+  const posterEl = $('poster');
   let svg = '';
-  const type = typeControls($('type-controls'), () => render());
-  function render() {
-    svg = renderEmberQr(url, { hideTiming: true, ...type.value() }).svg;
-    $('poster').innerHTML = svg;
-    const q = new URLSearchParams(type.params());
+  let timer;
+  const design = designer($('designer'), () => paint());
+  design.attachPoster(posterEl);
+  function paint() {
+    const page = composePoster(art, design.value());
+    svg = page.svg;
+    posterEl.querySelector('svg')?.remove();
+    posterEl.insertAdjacentHTML('afterbegin', svg);
+    design.setArtRect(page.artRect);
+    const q = new URLSearchParams(design.params());
     history.replaceState(null, '', `${location.pathname}${q.size ? `?${q}` : ''}`);
-    check(svg, url);
+    clearTimeout(timer);
+    $('scancheck').className = 'scancheck wait';
+    $('scancheck').textContent = 'Checking that it scans…';
+    timer = setTimeout(() => check(svg, url), 350);
   }
-  type.ready.then(render);
+  design.ready.then(paint);
 
   const fileBase = `ember-${code}`;
   $('copy').addEventListener('click', async () => {
@@ -54,26 +67,8 @@ function show() {
   });
   $('share').hidden = !navigator.share;
   $('share').addEventListener('click', () => navigator.share({ title: possessive, url }).catch(() => {}));
-  $('dl-svg').addEventListener('click', () => download(new Blob([svg], { type: 'image/svg+xml' }), `${fileBase}.svg`));
-  $('dl-png').addEventListener('click', async () => {
-    const w = +svg.match(/ width="(\d+)"/)[1];
-    const canvas = await toCanvas(svg, w * 3);
-    canvas.toBlob((blob) => download(blob, `${fileBase}.png`), 'image/png');
-  });
-}
-
-async function toCanvas(svg, width) {
-  const w = +svg.match(/ width="(\d+)"/)[1];
-  const h = +svg.match(/ height="(\d+)"/)[1];
-  const img = new Image();
-  img.src = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
-  await img.decode();
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = Math.round((h / w) * width);
-  canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-  URL.revokeObjectURL(img.src);
-  return canvas;
+  $('dl-svg').addEventListener('click', () => downloadSvg(svg, `${fileBase}.svg`));
+  $('dl-png').addEventListener('click', () => downloadPng(svg, `${fileBase}.png`));
 }
 
 /** Make sure this poster really leads back here before anyone prints it. */
@@ -81,26 +76,17 @@ let checkToken = 0;
 async function check(svg, url) {
   const token = ++checkToken;
   const el = $('scancheck');
-  el.className = 'scancheck wait';
-  el.textContent = 'Checking that it scans…';
   try {
-    const canvas = await toCanvas(svg, 900);
+    const canvas = await svgToCanvas(svg, 1100);
     const data = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
     const res = await readBarcodes(data, { formats: ['QRCode'], tryHarder: true, maxNumberOfSymbols: 1 });
     if (token !== checkToken) return;
     const ok = res[0]?.text === url;
     el.className = `scancheck ${ok ? 'ok' : 'bad'}`;
-    el.textContent = ok ? '✓ Scans back to this page' : '⚠ This poster did not scan back to its link';
+    el.textContent = ok ? '✓ Scans back to this page' : '⚠ This poster did not scan back to its link: make the ember bigger';
   } catch (e) {
+    if (token !== checkToken) return;
     el.className = 'scancheck bad';
     el.textContent = `Scan check failed to run: ${e.message}`;
   }
-}
-
-function download(blob, name) {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = name;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }

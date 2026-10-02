@@ -9,10 +9,9 @@
 import { Stream, utf8 } from './prng.js';
 import { sha256 } from './sha256.js';
 import { buildArtQr, minVersion } from './artqr.js';
-import { captions, captionHeightPerWidth, MARGINS, POSTER_RATIO } from './typography.js';
+import { composePoster } from './compose.js';
 
 const QUIET = 4;
-const PAPER = '#f7f4ee';
 const GRID = '#d3c9bf';
 const CHAR = [0x22, 0x19, 0x13];
 const BURNT = [0x6e, 0x30, 0x10];
@@ -83,10 +82,9 @@ function shapeFn(n, seed) {
  * @param {number} [o.burn]   share of each block's correction budget spent on the picture (default 0.35)
  * @param {boolean} [o.xray]  overlay which modules were steered (teal) and burned (magenta)
  * @param {boolean} [o.caption]
- * @param {string} [o.font]      caption font id (see fonts.js)
- * @param {string} [o.typeSize]  'small' | 'medium' | 'large'
- * @param {string} [o.topText]  sentence above the artwork (see typography.js)
- * @param {string} [o.bottomText]  sentence below it
+ * @param {object} [o.top]     rich-text block above the artwork (see richtext.js)
+ * @param {object} [o.bottom]  rich-text block below the artwork
+ * @param {object} [o.layout]  { artScale, artOffset } (see compose.js)
  * @param {boolean} [o.blendAlignment]  draw alignment squares in the ember style
  *                  instead of solid (scanners locate them approximately anyway)
  * @param {boolean} [o.hideTiming]  leave the timing dots outside the plume undrawn
@@ -232,29 +230,11 @@ export function renderEmberQr(text, o = {}) {
     `<ellipse cx="${f(flame.x + 0.08 * fs)}" cy="${f(flame.y + 1.28 * fs)}" rx="${f(0.62 * fs)}" ry="${f(0.24 * fs)}" fill="#5d5650"/>`,
   ].join('');
 
-  // --- poster frame: big type above and below the artwork ---------------------------
+  // --- artwork bounds; the page (text blocks, placement) is composed around it --------
   const artTop = top - 1;
   const artBottom = n + QUIET + 3 * fs + 1;
-  const artHeight = artBottom - artTop;
-  const minWidth = n + 2 * QUIET + 14;
-  let width = minWidth;
-  let topY = artTop - 3;
-  let bottom = artBottom + 2;
-  let captionSvg = '';
-  let fontStyle = '';
-  if (caption) {
-    // Type scales with the poster width, so solve for the width that gives a 2:3 poster.
-    const type = { font: o.font, typeSize: o.typeSize, topText: o.topText, bottomText: o.bottomText };
-    const perWidth = captionHeightPerWidth(type) + 2 * (MARGINS.outer + MARGINS.gap);
-    width = Math.max(minWidth, artHeight / (POSTER_RATIO - perWidth));
-    const cap = captions(width, type);
-    topY = artTop - MARGINS.gap * width - cap.topHeight - MARGINS.outer * width;
-    bottom = artBottom + MARGINS.gap * width + cap.bottomHeight + MARGINS.outer * width;
-    captionSvg = cap.top(n / 2, topY + MARGINS.outer * width) + cap.bottom(n / 2, artBottom + MARGINS.gap * width);
-    fontStyle = cap.style;
-  }
-  const height = bottom - topY;
-  const left = n / 2 - width / 2;
+  const artWidth = n + 2 * QUIET + 14;
+  const box = { x: n / 2 - artWidth / 2, y: artTop, w: artWidth, h: artBottom - artTop };
 
   let xraySvg = '';
   if (o.xray) {
@@ -297,18 +277,26 @@ export function renderEmberQr(text, o = {}) {
     </radialGradient>`;
 
   const aura = `<ellipse cx="${f(n / 2)}" cy="${f(n * 0.78)}" rx="${f(n * 0.42)}" ry="${f(n * 0.5)}" fill="url(#eq-aura)"/>`;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${f(left)} ${f(topY)} ${f(width)} ${f(height)}" width="${Math.round(width * 10)}" height="${Math.round(height * 10)}" shape-rendering="crispEdges">
-  <title>Ember QR</title>
-  <desc>A standard QR code (version ${version}-${level}) drawn as embers.</desc>
-  <defs>${fontStyle}${defs}</defs>
-  <rect x="${f(left)}" y="${f(topY)}" width="${f(width)}" height="${f(height)}" fill="${PAPER}"/>
-  <g shape-rendering="geometricPrecision">${aura}${glow.join('')}${flameSvg}</g>
+  const artwork = {
+    box,
+    title: 'Ember QR',
+    desc: `A standard QR code (version ${version}-${level}) drawn as embers.`,
+    defs,
+    body: `<g shape-rendering="geometricPrecision">${aura}${glow.join('')}${flameSvg}</g>
   <g>${grid.join('')}</g>
-  <g>${solid.join('')}</g>${captionSvg}${xraySvg}
-</svg>`;
+  <g>${solid.join('')}</g>${xraySvg}`,
+  };
+  const none = { paragraphs: [] };
+  const page = composePoster(artwork, {
+    top: caption ? o.top : none,
+    bottom: caption ? o.bottom : none,
+    layout: o.layout,
+  });
 
   return {
-    svg,
+    svg: page.svg,
+    art: artwork,
+    artRect: page.artRect,
     meta: { version, level, size: n, minVersion: min, mask: qr.mask, burn, ...qr.stats },
   };
 }
