@@ -21,7 +21,7 @@ const ALIGN = [
 ];
 
 /**
- * Standard QR for `text` at error correction H (30%), because the fire
+ * Standard QR for `text` at error correction H (30%), because the embers
  * recolours and overlaps the code. matrix[y][x] is true for a dark module.
  */
 export function makeQr(text) {

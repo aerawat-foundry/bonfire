@@ -24,7 +24,7 @@ const CASES = [
   { width: 440, warp: 0.1, blur: 1.4, noise: 10, rotate: 90, seed: 3 },
 ];
 
-for (const text of ['https://this.side.of.tech', 'Hello fire', 'नमस्ते 🔥 ember']) {
+for (const text of ['https://this.side.of.tech', 'Hello ember', 'नमस्ते 🔥 ember']) {
   test(`scan: ${text}`, { skip: !haveRaster && 'python raster stack missing' }, async () => {
     const { svg, meta } = renderPoster(text);
     for (const c of CASES) {
@@ -65,11 +65,11 @@ test('scan: standard QR readers see the code', { skip: !haveRaster && 'python ra
   assert.equal(out, 'https://this.side.of.tech');
 });
 
-test('fire QR posters scan as standard QR codes', { skip: !haveRaster && 'python raster stack missing' }, async () => {
-  const { renderFireQr } = await import('../src/core/fireart.js');
+test('Ember QR posters scan as standard QR codes', { skip: !haveRaster && 'python raster stack missing' }, async () => {
+  const { renderEmberQr } = await import('../src/core/emberqr.js');
   const text = 'https://this.side.of.tech';
   for (const opts of [{}, { level: 'M', version: 10 }, { level: 'H', burn: 0.6 }]) {
-    const { svg } = renderFireQr(text, { hideTiming: true, ...opts });
+    const { svg } = renderEmberQr(text, { hideTiming: true, ...opts });
     for (const c of [{ width: 1100 }, { width: 600 }, { warp: 0.06, blur: 1.1, noise: 6, rotate: 10 }]) {
       const r = await scanImage(rasterize(svg, c), { ember: false });
       assert.equal(r?.text, text, `${JSON.stringify(opts)} ${JSON.stringify(c)}`);

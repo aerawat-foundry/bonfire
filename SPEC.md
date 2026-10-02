@@ -10,7 +10,7 @@ grid:
 3. **Hotpoints**: 5–8 QR modules with a glowing core, placed by the text's hash.
 
 The QR is the anchor: a reader finds it, maps module coordinates to pixels,
-and extends that grid upward into the fire.
+and extends that grid upward into the plume.
 
 ## Coordinates
 
@@ -124,11 +124,11 @@ modules. Missing heat suggests a flat reprint.
 `0xB1` marks v1. Any change to the constants above needs a new magic byte and
 new seed prefixes (`ember/v2/…`).
 
-## Appendix: Fire QR (`/fire/`)
+## Appendix: Ember QR (`/qr/`)
 
-Fire QR is not part of the convention above. It is a plain, standards-compliant
+Ember QR is not part of the convention above. It is a plain, standards-compliant
 QR code (no ember layer, no hotpoints) whose modules are chosen and drawn to
-look like the poster's fire. Any QR reader decodes it.
+look like the poster's plume of embers. Any QR reader decodes it.
 
 1. **Encoding.** Byte mode, then a terminator and zero bits to the next byte
    boundary. Every data bit after that is *free*: decoders stop at the
@@ -146,10 +146,10 @@ look like the poster's fire. Any QR reader decodes it.
    target is kept.
 5. **Target.** A column (narrow, sparse at the bottom, denser upward) opens into
    a plume (densest at its base, dissolving upward and outward). Outside the
-   fire the target is light. Modules outside the fire, especially near the
+   plume the target is light. Modules outside the plume, especially near the
    square's edges, carry the highest weights, so the square outline disappears.
 6. **Drawing.** Finders and (by default) alignment patterns are solid cells.
    Column modules are full cells or outlined cells. Plume modules are embers of
    size 0.66–0.92 covering the centre, or a dissolving grid. Remaining dark
-   modules outside the fire are 0.5–0.62 ash specks. Timing dots outside the
-   fire can be omitted (decoders derive the grid from the finders).
+   modules outside the plume are 0.5–0.62 ash specks. Timing dots outside the
+   plume can be omitted (decoders derive the grid from the finders).

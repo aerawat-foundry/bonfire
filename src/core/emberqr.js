@@ -1,7 +1,7 @@
-// Fire QR: a standard QR drawn as a column of grid cells burning into a plume
+// Ember QR: a standard QR drawn as a column of grid cells opening into a plume
 // of embers, in the style of the reference poster. The picture is carved into
 // the code with artqr.js (free bits + a chosen share of the error budget); the
-// renderer then draws each module according to where it sits in the fire.
+// renderer then draws each module according to where it sits in the plume.
 //
 // One SVG unit = one QR module. Every random-looking choice comes from a
 // stream seeded by the text, so the same settings always burn the same way.
@@ -34,7 +34,7 @@ function noise(seed, x, y) {
 }
 
 /**
- * The fire's shape inside the N x N code, in normalised coordinates
+ * The ember shape inside the N x N code, in normalised coordinates
  * (u across, v down, both 0..1). Returns { zone, density, edge } where zone is
  * 'column' | 'plume' | 'outside', density is how much of the zone should be
  * dark, and edge (0..1) is how close the point is to the outline.
@@ -75,7 +75,7 @@ function shapeFn(n, seed) {
 }
 
 /**
- * Render a Fire QR poster.
+ * Render an Ember QR poster.
  * @param {string} text
  * @param {object} [o]
  * @param {number} [o.version]  QR version (size); default: a roomy one for the text
@@ -83,11 +83,11 @@ function shapeFn(n, seed) {
  * @param {number} [o.burn]   share of each block's correction budget spent on the picture (default 0.35)
  * @param {boolean} [o.xray]  overlay which modules were steered (teal) and burned (magenta)
  * @param {boolean} [o.caption]
- * @param {boolean} [o.blendAlignment]  draw alignment squares in the fire's style
+ * @param {boolean} [o.blendAlignment]  draw alignment squares in the ember style
  *                  instead of solid (scanners locate them approximately anyway)
- * @param {boolean} [o.hideTiming]  leave the timing dots outside the fire undrawn
+ * @param {boolean} [o.hideTiming]  leave the timing dots outside the plume undrawn
  */
-export function renderFireQr(text, o = {}) {
+export function renderEmberQr(text, o = {}) {
   if (!text) throw new Error('Enter some text to burn.');
   const bytes = utf8(text);
   const level = o.level ?? 'Q';
@@ -95,7 +95,7 @@ export function renderFireQr(text, o = {}) {
   const version = clamp(o.version ?? Math.max(min, 12), min, 40);
   const burn = o.burn ?? 0.35;
   const caption = o.caption ?? true;
-  const seedBytes = sha256(new Uint8Array([...utf8('ember/fire/v1/'), ...bytes]));
+  const seedBytes = sha256(new Uint8Array([...utf8('ember/qr/v1/'), ...bytes]));
   const seed = (seedBytes[0] << 24) | (seedBytes[1] << 16) | (seedBytes[2] << 8) | seedBytes[3];
   const art = new Stream(seedBytes);
 
@@ -107,7 +107,7 @@ export function renderFireQr(text, o = {}) {
     const s = shape(r, c);
     const dark = s.zone !== 'outside' && noise(seed ^ 0x5bd1e995, c, r) < s.density;
     // Edges of the square (where the quiet zone would give the code away)
-    // and the fire's outline matter most; inner dithering least.
+    // and the outline of the plume matter most; inner dithering least.
     const border = Math.min(r, c, n - 1 - r, n - 1 - c);
     let weight;
     if (s.zone === 'outside') weight = border < 4 ? 3 : 2 + s.edge * 0.5;
@@ -125,7 +125,7 @@ export function renderFireQr(text, o = {}) {
   const grid = [];
   const solid = [];
 
-  // --- the code, drawn as fire -------------------------------------------------
+  // --- the code, drawn as embers -------------------------------------------------
   for (let r = 0; r < n; r++) {
     for (let c = 0; c < n; c++) {
       const s = shape(r, c);
@@ -164,11 +164,11 @@ export function renderFireQr(text, o = {}) {
           const cx = c + 0.5 + art.uniform(-m, m);
           const cy = r + 0.5 + art.uniform(-m, m);
           const lit = art.random() < 0.5 - 0.25 * t;
-          if (lit) glow.push(`<circle cx="${f(cx)}" cy="${f(cy)}" r="${f(size * 1.3)}" fill="url(#fq-ember)"/>`);
+          if (lit) glow.push(`<circle cx="${f(cx)}" cy="${f(cy)}" r="${f(size * 1.3)}" fill="url(#eq-ember)"/>`);
           const fill = lit ? art.pick(EMBERS.slice(3)) : art.pick(EMBERS.slice(0, 4));
           solid.push(rect(cx - size / 2, cy - size / 2, size, size, `fill="${fill}"`));
         } else {
-          // the grid dissolves as the fire rises
+          // the grid dissolves as the embers rise
           const keep = 0.85 - 0.75 * t - 0.4 * s.d;
           const roll = art.random();
           if (roll < keep) {
@@ -179,7 +179,7 @@ export function renderFireQr(text, o = {}) {
           }
         }
       } else if (dark) {
-        // outside the fire: a speck of dust or ash, still covering the centre
+        // outside the plume: a speck of dust or ash, still covering the centre
         const size = art.uniform(0.5, 0.62);
         solid.push(rect(c + 0.5 - size / 2, r + 0.5 - size / 2, size, size, `fill="${art.pick(DUST)}"`));
       }
@@ -218,11 +218,11 @@ export function renderFireQr(text, o = {}) {
   const fs = n / 30; // flame scales with the code
   const lean = art.uniform(-4, 4);
   const flameSvg = [
-    `<ellipse cx="${f(flame.x)}" cy="${f(flame.y - 2 * fs)}" rx="${f(5.5 * fs)}" ry="${f(6.5 * fs)}" fill="url(#fq-flame-glow)"/>`,
+    `<ellipse cx="${f(flame.x)}" cy="${f(flame.y - 2 * fs)}" rx="${f(5.5 * fs)}" ry="${f(6.5 * fs)}" fill="url(#eq-flame-glow)"/>`,
     `<g transform="rotate(${f(lean)} ${f(flame.x)} ${f(flame.y)})">`,
-    teardrop(2.2 * fs, 5 * fs, 'url(#fq-flame-outer)'),
-    teardrop(1.45 * fs, 3.5 * fs, 'url(#fq-flame-mid)'),
-    teardrop(0.78 * fs, 2 * fs, 'url(#fq-flame-core)'),
+    teardrop(2.2 * fs, 5 * fs, 'url(#eq-flame-outer)'),
+    teardrop(1.45 * fs, 3.5 * fs, 'url(#eq-flame-mid)'),
+    teardrop(0.78 * fs, 2 * fs, 'url(#eq-flame-core)'),
     '</g>',
     `<ellipse cx="${f(flame.x)}" cy="${f(flame.y + 1.4 * fs)}" rx="${f(1.15 * fs)}" ry="${f(0.45 * fs)}" fill="#8c847d"/>`,
     `<ellipse cx="${f(flame.x + 0.08 * fs)}" cy="${f(flame.y + 1.28 * fs)}" rx="${f(0.62 * fs)}" ry="${f(0.24 * fs)}" fill="#5d5650"/>`,
@@ -266,32 +266,32 @@ export function renderFireQr(text, o = {}) {
   }
 
   const defs = `
-    <radialGradient id="fq-aura" cx="0.5" cy="0.5" r="0.5">
+    <radialGradient id="eq-aura" cx="0.5" cy="0.5" r="0.5">
       <stop offset="0" stop-color="#ff9a4a" stop-opacity="0.2"/>
       <stop offset="1" stop-color="#ffb070" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="fq-ember" cx="0.5" cy="0.5" r="0.5">
+    <radialGradient id="eq-ember" cx="0.5" cy="0.5" r="0.5">
       <stop offset="0" stop-color="#f4893b" stop-opacity="0.32"/>
       <stop offset="1" stop-color="#f4893b" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="fq-flame-outer" cx="0.5" cy="0.78" r="0.62">
+    <radialGradient id="eq-flame-outer" cx="0.5" cy="0.78" r="0.62">
       <stop offset="0" stop-color="#ffd27a"/><stop offset="0.6" stop-color="#ffab55"/>
       <stop offset="1" stop-color="#f7953f" stop-opacity="0.15"/>
     </radialGradient>
-    <radialGradient id="fq-flame-mid" cx="0.5" cy="0.8" r="0.6">
+    <radialGradient id="eq-flame-mid" cx="0.5" cy="0.8" r="0.6">
       <stop offset="0" stop-color="#fff1c9"/><stop offset="1" stop-color="#ffc66b" stop-opacity="0.7"/>
     </radialGradient>
-    <radialGradient id="fq-flame-core" cx="0.5" cy="0.75" r="0.6">
+    <radialGradient id="eq-flame-core" cx="0.5" cy="0.75" r="0.6">
       <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#fff3d6" stop-opacity="0.6"/>
     </radialGradient>
-    <radialGradient id="fq-flame-glow" cx="0.5" cy="0.5" r="0.5">
+    <radialGradient id="eq-flame-glow" cx="0.5" cy="0.5" r="0.5">
       <stop offset="0" stop-color="#ffb35c" stop-opacity="0.5"/><stop offset="1" stop-color="#ffb35c" stop-opacity="0"/>
     </radialGradient>`;
 
-  const aura = `<ellipse cx="${f(n / 2)}" cy="${f(n * 0.78)}" rx="${f(n * 0.42)}" ry="${f(n * 0.5)}" fill="url(#fq-aura)"/>`;
+  const aura = `<ellipse cx="${f(n / 2)}" cy="${f(n * 0.78)}" rx="${f(n * 0.42)}" ry="${f(n * 0.5)}" fill="url(#eq-aura)"/>`;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${f(left)} ${f(topY)} ${f(width)} ${f(height)}" width="${Math.round(width * 10)}" height="${Math.round(height * 10)}" shape-rendering="crispEdges">
-  <title>Ember Fire QR</title>
-  <desc>A standard QR code (version ${version}-${level}) drawn as fire.</desc>
+  <title>Ember QR</title>
+  <desc>A standard QR code (version ${version}-${level}) drawn as embers.</desc>
   <defs>${defs}</defs>
   <rect x="${f(left)}" y="${f(topY)}" width="${f(width)}" height="${f(height)}" fill="${PAPER}"/>
   <g shape-rendering="geometricPrecision">${aura}${glow.join('')}${flameSvg}</g>

@@ -33,7 +33,7 @@ function update() {
     const used = utf8(meta.emberText).length;
     statsEl.innerHTML = `
       <dt>QR</dt><dd>version ${meta.version} · ${meta.size}×${meta.size} · error correction H</dd>
-      <dt>Fire</dt><dd>${meta.emberCells} ember cells · ${used}/${meta.capacity.maxPayload} bytes
+      <dt>Embers</dt><dd>${meta.emberCells} ember cells · ${used}/${meta.capacity.maxPayload} bytes
         <div class="meter"><i style="width:${Math.min(100, (100 * used) / meta.capacity.maxPayload)}%"></i></div></dd>
       <dt>Hotpoints</dt><dd>${meta.hotpoints.length}</dd>`;
     const q = new URLSearchParams({ t: text });

@@ -93,7 +93,7 @@ test('embers survive a burnt-out patch of the plume', () => {
 
 test('ember payload over capacity is rejected', () => {
   const { maxPayload } = capacity(21);
-  assert.throws(() => encodeEmbers(21, 'x'.repeat(maxPayload + 1)), /holds/);
+  assert.throws(() => encodeEmbers(21, 'x'.repeat(maxPayload + 1)), /hold/);
 });
 
 test('hotpoints avoid function patterns and depend on the text', () => {

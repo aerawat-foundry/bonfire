@@ -1,4 +1,4 @@
-// Ember layer: the "random" fire particles above the QR, as a reversible code.
+// Ember layer: the "random" particles rising above the QR, as a reversible code.
 //
 // Convention v1 (see SPEC.md). Module units, y grows downward, QR at [0, N):
 //  * The ember lattice shares the QR's module grid. It begins above the QR's
@@ -77,7 +77,7 @@ export function encodeEmbers(n, payload) {
   const bytes = typeof payload === 'string' ? utf8(payload) : payload;
   const { total, nsym, maxPayload } = capacity(n);
   if (bytes.length > maxPayload) {
-    throw new Error(`Ember text is ${bytes.length} bytes; this fire holds ${maxPayload}.`);
+    throw new Error(`Ember text is ${bytes.length} bytes; these embers hold ${maxPayload}.`);
   }
   const digest = sha256(bytes);
   const data = [MAGIC, bytes.length, ...bytes, digest[0], digest[1]];
@@ -95,7 +95,7 @@ export function encodeEmbers(n, payload) {
 
 /**
  * Recover the payload. readBit(x, y) -> { bit, confidence 0..1 }.
- * Returns { bytes, text, corrected }; throws if the fire cannot be read.
+ * Returns { bytes, text, corrected }; throws if the embers cannot be read.
  */
 export function decodeEmbers(n, readBit) {
   const { total, nsym } = capacity(n);

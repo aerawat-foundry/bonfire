@@ -4,9 +4,9 @@
 // 1. Read the standard QR with ZXing (WebAssembly).
 // 2. Refine ZXing's corner points to sub-module accuracy by matching the
 //    known module pattern, then fit a homography (module space -> pixels).
-// 3. Extend that grid upward into the fire and read every ember data cell.
+// 3. Extend that grid upward into the plume and read every ember data cell.
 // 4. Reed-Solomon decode the ember layer, trying a few small geometry
-//    corrections, since the fire reaches well past the anchors.
+//    corrections, since the plume reaches well past the anchors.
 // 5. Recompute the hotpoints from the text and check that they glow.
 
 import { readBarcodes } from 'zxing-wasm/reader';
@@ -170,7 +170,7 @@ for (const sy of [0, 0.006, -0.006, 0.012, -0.012, 0.02, -0.02]) {
  *   decodeSoft(soft) -> ember result,
  * }
  */
-export async function scanImage(img, { tryHarder = true, ember: readFire = true } = {}) {
+export async function scanImage(img, { tryHarder = true, ember: readEmbers = true } = {}) {
   const results = await readBarcodes(img, {
     formats: ['QRCode'],
     tryHarder: true,
@@ -187,7 +187,7 @@ export async function scanImage(img, { tryHarder = true, ember: readFire = true 
     [{ x: 0, y: 0 }, { x: n, y: 0 }, { x: n, y: n }, { x: 0, y: n }],
     [topLeft, topRight, bottomRight, bottomLeft],
   );
-  if (!readFire) {
+  if (!readEmbers) {
     const quad = [topLeft, topRight, bottomRight, bottomLeft].map(({ x, y }) => ({ x, y }));
     return { mode: 'standard', text, version, size: n, quad };
   }

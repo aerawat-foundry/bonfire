@@ -1,6 +1,6 @@
 import { prepareZXingModule, readBarcodes } from 'zxing-wasm/reader';
 import wasmUrl from 'zxing-wasm/reader/zxing_reader.wasm?url';
-import { renderFireQr } from '../core/fireart.js';
+import { renderEmberQr } from '../core/emberqr.js';
 import { minVersion } from '../core/artqr.js';
 import { utf8 } from '../core/prng.js';
 import './pwa.js'; // service worker
@@ -54,15 +54,15 @@ function update() {
       hideTiming: $('hide-timing').checked,
       blendAlignment: $('blend-align').checked,
     };
-    const out = renderFireQr(text, opts);
+    const out = renderEmberQr(text, opts);
     current = { text, out };
-    posterEl.innerHTML = $('xray').checked ? renderFireQr(text, { ...opts, xray: true }).svg : out.svg;
+    posterEl.innerHTML = $('xray').checked ? renderEmberQr(text, { ...opts, xray: true }).svg : out.svg;
     errorEl.hidden = true;
     const m = out.meta;
     $('size-out').textContent = `version ${m.version} · ${m.size}×${m.size} modules`;
     $('burn-out').textContent = `${burnEl.value}% of the repair budget`;
     statsEl.innerHTML = `
-      <dt>Picture</dt><dd>${Math.round(m.match * 100)}% of the fire drawn as wished
+      <dt>Picture</dt><dd>${Math.round(m.match * 100)}% of the embers drawn as wished
         <div class="meter"><i style="width:${Math.round(m.match * 100)}%"></i></div></dd>
       <dt>Free bits</dt><dd>${m.controlled} modules steered with zero errors</dd>
       <dt>Burned</dt><dd>${m.burnedCodewords} of ${m.correctable} repairable codewords
@@ -145,13 +145,13 @@ function download(blob, name) {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 $('dl-svg').addEventListener('click', () => {
-  if (current) download(new Blob([current.out.svg], { type: 'image/svg+xml' }), `ember-fire-${slug(current.text)}.svg`);
+  if (current) download(new Blob([current.out.svg], { type: 'image/svg+xml' }), `ember-qr-${slug(current.text)}.svg`);
 });
 $('dl-png').addEventListener('click', async () => {
   if (!current) return;
   const w = +current.out.svg.match(/ width="(\d+)"/)[1];
   const canvas = await svgToCanvas(current.out.svg, w * 3);
-  canvas.toBlob((blob) => download(blob, `ember-fire-${slug(current.text)}.png`), 'image/png');
+  canvas.toBlob((blob) => download(blob, `ember-qr-${slug(current.text)}.png`), 'image/png');
 });
 
 update();

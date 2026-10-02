@@ -65,7 +65,9 @@ modeSwitch.addEventListener('change', () => {
 const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const isUrl = (s) => /^https?:\/\/\S+$/i.test(s);
 const badge = (cls, label) => `<span class="badge ${cls}">${label}</span>`;
-const idleHint = () => (isEmber() ? 'Fit the flame, QR and whole fire in the frame' : 'Point at a QR code');
+// Frames to wait for an ember layer before treating the code as a plain QR.
+const NO_LAYER_FRAMES = 12;
+const idleHint = () => (isEmber() ? 'Fit the flame, the QR and all the embers in the frame' : 'Point at a QR code');
 
 function setHint(html) {
   hint.innerHTML = html;
@@ -149,13 +151,17 @@ function showSheet(r, { ember, note } = {}) {
       ? `<a href="${esc(r.text)}" target="_blank" rel="noopener noreferrer">${esc(r.text)}</a>`
       : esc(r.text);
     layers.push(`<div class="layer"><h3>Standard QR</h3><p>${qrText}</p></div>`);
-    if (r.mode === 'ember') {
+    const plain = r.mode !== 'ember' || (!(ember || r.ember).ok && !r.hotpoints.expected);
+    if (plain && isEmber()) {
+      layers.push(`<div class="layer"><h3>Ember layer</h3><p><small>None in this code: it is a standard QR, such as an Ember QR.</small></p></div>`);
+    }
+    if (!plain) {
       const e = ember || r.ember;
       layers.push(e.ok
-        ? `<div class="layer"><h3>Fire · ember code</h3><p>${esc(e.text)}</p>
+        ? `<div class="layer"><h3>Ember layer</h3><p>${esc(e.text)}</p>
             ${e.match ? badge('ok', 'matches the QR') : badge('info', 'hidden message: differs from the QR')}
             ${badge('ok', `${e.corrected} bytes repaired`)}</div>`
-        : `<div class="layer"><h3>Fire · ember code</h3><p><small>Not read. ${esc(note || 'Make sure the whole plume is in the picture and in focus.')}</small></p>
+        : `<div class="layer"><h3>Ember layer</h3><p><small>Not read. ${esc(note || 'Make sure the whole plume is in the picture and in focus.')}</small></p>
             ${badge('bad', 'not read')}</div>`);
       const h = r.hotpoints;
       layers.push(h.expected
@@ -349,7 +355,7 @@ async function startCamera() {
  * Open the camera straight away only when permission is already granted.
  * Otherwise wait for a tap: browsers show the permission dialog reliably only
  * in response to a user gesture, and some (Safari, Chrome's quiet prompts,
- * installed apps) suppress or auto-block a prompt fired on page load.
+ * installed apps) suppress or auto-block a prompt raised on page load.
  */
 async function bootCamera() {
   if (!window.isSecureContext) return showProblem(inFrame ? 'NotAllowedError' : 'insecure');
@@ -415,7 +421,7 @@ async function scanFrame() {
     showSheet(r);
     return;
   }
-  // Ember mode: pool every frame's reading of each cell until the fire decodes.
+  // Ember mode: pool every frame's reading of each cell until the ember layer decodes.
   const acc = state.acc;
   if (acc.text !== r.text) state.acc = { text: r.text, sum: new Map(), frames: 0 };
   state.acc.frames++;
@@ -430,8 +436,10 @@ async function scanFrame() {
   }
   if (result.ok) {
     showSheet(r, { ember: result });
+  } else if (state.acc.frames >= NO_LAYER_FRAMES && !r.hotpoints.expected) {
+    showSheet({ mode: 'standard', text: r.text, quad: r.quad, size: r.size });
   } else {
-    setHint(`QR found · reading the fire… ${state.acc.frames}<button type="button" id="qr-only">Use QR only</button>`);
+    setHint(`QR found · reading the embers… ${state.acc.frames}<button type="button" id="qr-only">Use QR only</button>`);
   }
 }
 

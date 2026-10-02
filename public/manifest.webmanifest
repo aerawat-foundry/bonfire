@@ -1,7 +1,7 @@
 {
   "name": "Ember Code",
   "short_name": "Ember",
-  "description": "Generate and scan Ember codes: a standard QR burning inside a fire whose embers are a second code.",
+  "description": "Generate and scan Ember codes: a standard QR glowing under a plume of embers that carry a second code.",
   "id": "./scan/",
   "start_url": "./scan/",
   "scope": "./",

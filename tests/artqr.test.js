@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import './zxing-node.js';
 import { readBarcodes } from 'zxing-wasm/reader';
 import { buildArtQr, minVersion } from '../src/core/artqr.js';
-import { renderFireQr } from '../src/core/fireart.js';
+import { renderEmberQr } from '../src/core/emberqr.js';
 import { Stream } from '../src/core/prng.js';
 
 function raster(modules, scale = 5) {
@@ -71,8 +71,8 @@ test('burn never exceeds the share of the repair budget asked for', () => {
   }
 });
 
-test('fire QR rendering is deterministic per text and settings', () => {
-  const a = renderFireQr('same', { version: 8 }).svg;
-  assert.equal(a, renderFireQr('same', { version: 8 }).svg);
-  assert.notEqual(a, renderFireQr('different', { version: 8 }).svg);
+test('Ember QR rendering is deterministic per text and settings', () => {
+  const a = renderEmberQr('same', { version: 8 }).svg;
+  assert.equal(a, renderEmberQr('same', { version: 8 }).svg);
+  assert.notEqual(a, renderEmberQr('different', { version: 8 }).svg);
 });

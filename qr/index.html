@@ -7,17 +7,17 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
   <meta name="theme-color" content="#ece8e1" />
-  <title>Ember Fire QR</title>
+  <title>Ember QR</title>
   <link rel="stylesheet" href="/src/app/style.css" />
 </head>
 <body>
   <header class="top">
-    <h1>Ember <span>Fire QR</span></h1>
-    <nav><a href="../">Generate</a><a href="./" aria-current="page">Fire QR</a><a href="../scan/">Scan</a></nav>
+    <h1>Ember <span>QR</span></h1>
+    <nav><a href="../">Generate</a><a href="./" aria-current="page">Ember QR</a><a href="../scan/">Scan</a></nav>
   </header>
   <main>
-    <section class="panel" aria-label="Fire QR settings">
-      <p class="lede">A standard QR code drawn as fire. Its spare bits and part of its error-correction
+    <section class="panel" aria-label="Ember QR settings">
+      <p class="lede">A standard QR code drawn as a plume of embers. Its spare bits and part of its error-correction
         budget are spent on the picture, so any phone camera can still read it.</p>
       <label>Text for the QR
         <textarea id="text" rows="3" spellcheck="false">https://this.side.of.tech</textarea>
@@ -39,7 +39,7 @@
         <input id="burn" type="range" min="0" max="80" step="5" value="35" />
       </label>
 
-      <label class="check"><input id="hide-timing" type="checkbox" checked /> Hide the timing dots outside the fire</label>
+      <label class="check"><input id="hide-timing" type="checkbox" checked /> Hide the timing dots outside the embers</label>
       <label class="check"><input id="blend-align" type="checkbox" /> Blend the small alignment squares <small>(less sturdy)</small></label>
       <label class="check"><input id="xray" type="checkbox" /> X-ray: steered and burned modules</label>
 
@@ -57,11 +57,11 @@
         <ol>
           <li><b>Free bits.</b> After the text, the QR's data area has spare bits that decoders ignore. The error-correction
             parity depends on them in a known, linear way, so solving for them sets chosen modules, data <i>and</i> parity, to
-            match the fire, with zero errors. A bigger QR has more spare bits, which means more picture.</li>
+            match the embers, with zero errors. A bigger QR has more spare bits, which means more picture.</li>
           <li><b>Burn.</b> Each error-correction block can repair a number of damaged codewords. "Burn" spends that share of the
-            repair budget forcing more modules into the fire's shape. The rest stays as margin for real-world wear.</li>
+            repair budget forcing more modules into the ember shape. The rest stays as margin for real-world wear.</li>
           <li><b>Drawing.</b> Inside the column, modules are grid cells. In the plume they are embers of every size. Outside
-            the fire, unavoidable dark modules become specks of ash. Every mark still covers its module's centre, which is the
+            the plume, unavoidable dark modules become specks of ash. Every mark still covers its module's centre, which is the
             only spot a scanner looks at.</li>
           <li><b>What must stay:</b> the three corner finder squares, the small alignment squares and the format strips, which
             scanners use to lock on.</li>
@@ -72,6 +72,6 @@
       <div class="frame"><div class="mat" id="poster"></div></div>
     </section>
   </main>
-  <script type="module" src="/src/app/fire.js"></script>
+  <script type="module" src="/src/app/emberqr.js"></script>
 </body>
 </html>

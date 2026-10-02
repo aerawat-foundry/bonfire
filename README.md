@@ -7,7 +7,7 @@ burns at the base of a grid column and rises as a plume of embers.
 
 * **The QR is real.** It's a standard QR at error correction H, readable by
   any phone camera.
-* **The fire is a code too.** The ember pattern above the QR is a
+* **The embers are a code too.** The ember pattern above the QR is a
   Reed-Solomon-protected copy of the text (or a hidden second text) under its
   own reversible convention ([SPEC.md](SPEC.md)). Every "random" particle is
   derived from the text.
@@ -20,8 +20,8 @@ burns at the base of a grid column and rises as a plume of embers.
 | URL      | What it does |
 |----------|--------------|
 | `/`      | **Generator.** Type text, get the poster as SVG or PNG. Optional hidden ember text, plus an X-ray view of the convention. |
-| `/fire/` | **Fire QR.** A standard QR drawn *as* the fire: a column of grid cells opening into a plume of embers, with ash where the code has no fire. Spare data bits are solved for the picture (zero errors), and an adjustable share of the error-correction budget ("burn") pulls more modules into shape. Settings: size, error-correction level, burn, timing/alignment styling, x-ray. Each design is decoded in the page before you download it. Any QR reader can scan the result; it has no ember layer. |
-| `/scan/` | **Scanner.** Opens straight to the camera, with a gallery icon to scan a saved image (paste and drag-and-drop work too). A **Standard QR / Ember QR** switch picks the mode: Standard reads only the QR; Ember also reads the fire (pooling evidence across camera frames) and checks the hotpoints. `?mode=standard` or `?mode=ember` preselects it. |
+| `/qr/` | **Ember QR.** A standard QR drawn *as* the embers: a column of grid cells opening into a plume of embers, with ash where the code has no embers. Spare data bits are solved for the picture (zero errors), and an adjustable share of the error-correction budget ("burn") pulls more modules into shape. Settings: size, error-correction level, burn, timing/alignment styling, x-ray. Each design is decoded in the page before you download it. Any QR reader can scan the result; it has no ember layer. |
+| `/scan/` | **Scanner.** Opens straight to the camera, with a gallery icon to scan a saved image (paste and drag-and-drop work too). A **Standard QR / Ember QR** switch picks the mode: Standard reads only the QR; Ember also reads the ember layer (pooling evidence across camera frames) and checks the hotpoints. `?mode=standard` or `?mode=ember` preselects it. |
 
 ## Run
 
@@ -66,7 +66,7 @@ src/core/      convention + rendering + scanning (no DOM; runs in Node too)
   rs.js          Reed-Solomon GF(256) with error + erasure decoding
   qr.js          standard QR matrix (qrcode-generator) + function-pattern mask
   artqr.js       art QR encoder: free-bit solving (QArt) + error-budget "burn"
-  fireart.js     Fire QR picture (column + plume) and renderer
+  emberqr.js     Ember QR picture (column + plume) and renderer
   ember.js       ember layout and codec
   hotpoints.js   hotpoint placement
   render.js      poster SVG
