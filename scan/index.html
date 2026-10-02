@@ -2,41 +2,71 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#000000" />
   <title>Bonfire Scanner</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 1C9 5 13 6 13 10a5 5 0 0 1-10 0c0-3 3-4 5-9z' fill='%23e8641c'/%3E%3C/svg%3E" />
-  <link rel="stylesheet" href="/src/app/style.css" />
+  <link rel="stylesheet" href="/src/app/scanner.css" />
 </head>
 <body>
-  <header class="top">
-    <h1>Bonfire <span>Scanner</span></h1>
-    <nav><a href="../">Generate</a><a href="./" aria-current="page">Scan</a></nav>
-  </header>
-  <main>
-    <section class="panel" aria-label="Scanner controls">
-      <p class="lede">Point the camera at a Bonfire poster with the whole fire in frame, or drop in a photo or
-        exported image. Any QR reader gets the link; this one also reads the fire.</p>
-      <div class="row">
-        <button class="primary" id="camera">Start camera</button>
-        <label class="button" for="file" style="display:inline-block">Open image</label>
-        <input id="file" type="file" accept="image/*" hidden />
+  <div class="scanner" id="scanner" data-mode="ember">
+    <video id="video" playsinline muted autoplay></video>
+    <img id="still" alt="Image being scanned" hidden />
+    <canvas id="overlay" aria-hidden="true"></canvas>
+
+    <header class="bar top">
+      <a class="icon-btn" href="../" aria-label="Back to generator">
+        <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+      </a>
+      <h1>Bonfire <span>Scanner</span></h1>
+      <button class="icon-btn" id="torch" aria-label="Flashlight" aria-pressed="false" hidden>
+        <svg viewBox="0 0 24 24"><path d="M8 2h8l-1 6h-6zM9 8h6l-1 6v8h-4v-8z"/></svg>
+      </button>
+    </header>
+
+    <div class="finder" id="finder" aria-hidden="true">
+      <i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>
+      <b class="sweep"></b>
+    </div>
+    <p class="hint" id="hint" role="status">Starting camera…</p>
+
+    <section class="notice" id="notice" hidden role="alert">
+      <svg viewBox="0 0 24 24" class="big"><path d="M3 7h3l2-3h8l2 3h3v13H3z"/><circle cx="12" cy="13" r="4"/><path d="M2 2l20 20"/></svg>
+      <h2 id="notice-title">Camera not available</h2>
+      <p id="notice-text"></p>
+      <div class="notice-actions">
+        <button class="pill" id="retry">Try again</button>
+        <a class="pill" id="newtab" href="./" target="_blank" rel="noopener" hidden>Open in new tab</a>
+        <button class="pill solid" id="notice-upload">Upload an image</button>
       </div>
-      <div class="result" id="result" aria-live="polite">
-        <div class="layer"><h3>Standard QR</h3><p id="r-qr">–</p></div>
-        <div class="layer"><h3>Fire (ember code)</h3><p id="r-ember">–</p></div>
-        <div class="layer"><h3>Hotpoints</h3><p id="r-hot">–</p></div>
-      </div>
-      <p class="lede" id="status"></p>
     </section>
-    <section aria-label="Viewer">
-      <div class="viewer" id="viewer">
-        <p class="hint" id="hint">Camera off. Start the camera, or drop an image here.</p>
-        <video id="video" playsinline muted hidden></video>
-        <img id="still" alt="Scanned image" hidden />
-        <canvas class="overlay" id="overlay"></canvas>
+
+    <footer class="bar bottom">
+      <button class="icon-btn round" id="gallery" aria-label="Scan an image from your device">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>
+      </button>
+      <label class="mode" title="Standard QR reads only the QR. Ember QR also reads the fire and checks the hotpoints.">
+        <span class="lbl std">Standard QR</span>
+        <input type="checkbox" id="ember-mode" role="switch" checked aria-label="Ember QR mode" />
+        <span class="track"><span class="knob"></span></span>
+        <span class="lbl emb">Ember QR</span>
+      </label>
+      <button class="icon-btn round" id="flip" aria-label="Switch camera" disabled>
+        <svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><path d="M9 13a3 3 0 0 1 5.2-2M15 13a3 3 0 0 1-5.2 2"/><path d="M14 9.5l.4 1.6-1.6.3M10 16.5l-.4-1.6 1.6-.3"/></svg>
+      </button>
+      <input type="file" id="file" accept="image/*" hidden />
+    </footer>
+
+    <section class="sheet" id="sheet" hidden aria-live="polite">
+      <div class="grip"></div>
+      <div class="layers" id="layers"></div>
+      <div class="sheet-actions">
+        <a class="pill solid" id="open-link" target="_blank" rel="noopener noreferrer" hidden>Open link</a>
+        <button class="pill" id="copy">Copy text</button>
+        <button class="pill" id="again">Scan again</button>
       </div>
     </section>
-  </main>
+  </div>
   <script type="module" src="/src/app/scanner.js"></script>
 </body>
 </html>

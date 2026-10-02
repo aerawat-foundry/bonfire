@@ -20,7 +20,7 @@ burns at the base of a grid column and rises as a plume of embers.
 | URL      | What it does |
 |----------|--------------|
 | `/`      | **Generator.** Type text, get the poster as SVG or PNG. Optional hidden ember text, plus an X-ray view of the convention. |
-| `/scan/` | **Scanner.** Camera or image upload. Reads the QR, then the fire, then checks the hotpoints. With the camera, it pools evidence across frames. |
+| `/scan/` | **Scanner.** Opens straight to the camera, with a gallery icon to scan a saved image (paste and drag-and-drop work too). A **Standard QR / Ember QR** switch picks the mode: Standard reads only the QR; Ember also reads the fire (pooling evidence across camera frames) and checks the hotpoints. `?mode=standard` or `?mode=ember` preselects it. |
 
 ## Run
 
@@ -31,7 +31,7 @@ npm run build     # static site in dist/ (relative paths; host anywhere)
 npm test
 ```
 
-The camera needs a secure context (HTTPS or `localhost`).
+The camera needs a secure context (HTTPS or `localhost`) and its own tab: pages embedded in another site's frame are not allowed to use the camera, and the scanner says so and offers to open in a new tab.
 
 The end-to-end tests rasterize and distort posters with Python:
 `pip install cairosvg opencv-python-headless numpy`. Those tests are skipped

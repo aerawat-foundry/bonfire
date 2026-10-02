@@ -155,8 +155,12 @@ for (const sy of [0, 0.006, -0.006, 0.012, -0.012, 0.02, -0.02]) {
 }
 
 /**
- * Scan an image. Resolves to null when no QR is found, otherwise:
+ * Scan an image. Resolves to null when no QR is found.
+ *
+ * With `ember: false` (standard mode) only the QR is read and the result is
+ * { mode: 'standard', text, version, size, quad }. Otherwise (ember mode):
  * {
+ *   mode: 'ember',
  *   text, version, size,
  *   quad: [4 pixel corners of the QR],
  *   ember: { ok, text?, corrected?, match?, error? },
@@ -166,7 +170,7 @@ for (const sy of [0, 0.006, -0.006, 0.012, -0.012, 0.02, -0.02]) {
  *   decodeSoft(soft) -> ember result,
  * }
  */
-export async function scanImage(img, { tryHarder = true } = {}) {
+export async function scanImage(img, { tryHarder = true, ember: readFire = true } = {}) {
   const results = await readBarcodes(img, {
     formats: ['QRCode'],
     tryHarder: true,
@@ -183,6 +187,10 @@ export async function scanImage(img, { tryHarder = true } = {}) {
     [{ x: 0, y: 0 }, { x: n, y: 0 }, { x: n, y: n }, { x: 0, y: n }],
     [topLeft, topRight, bottomRight, bottomLeft],
   );
+  if (!readFire) {
+    const quad = [topLeft, topRight, bottomRight, bottomLeft].map(({ x, y }) => ({ x, y }));
+    return { mode: 'standard', text, version, size: n, quad };
+  }
   const sampler = makeSampler(img);
 
   // The module pattern: regenerated from the text when it matches what ZXing
@@ -317,5 +325,5 @@ export async function scanImage(img, { tryHarder = true } = {}) {
     return { x, y, px: p.x, py: p.y, ink: usedSoft.get(`${x},${y}`) };
   });
   const quad = [[0, 0], [n, 0], [n, n], [0, n]].map(([x, y]) => apply(H, x, y));
-  return { text, version, size: n, quad, ember, hotpoints, cells, soft, decodeSoft };
+  return { mode: 'ember', text, version, size: n, quad, ember, hotpoints, cells, soft, decodeSoft };
 }
