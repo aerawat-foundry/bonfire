@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+  <meta name="theme-color" content="#ece8e1" />
+  <title>Ember</title>
+  <link rel="stylesheet" href="/src/app/style.css" />
+</head>
+<body>
+  <header class="top">
+    <h1><a href="/" class="brand">Ember</a></h1>
+    <nav><a href="/">Get yours</a><a href="/scan/">Scan</a></nav>
+  </header>
+  <main id="ember-main">
+    <section class="panel" aria-label="Your Ember">
+      <h2 id="ember-title">An Ember</h2>
+      <p class="lede" id="ember-lede"></p>
+      <label>Link
+        <input id="link" type="text" readonly />
+      </label>
+      <div class="row">
+        <button class="primary" id="share">Share</button>
+        <button id="copy">Copy link</button>
+      </div>
+      <div class="row">
+        <button id="dl-png">Download PNG</button>
+        <button id="dl-svg">Download SVG</button>
+      </div>
+      <p class="scancheck" id="scancheck" role="status"></p>
+    </section>
+    <section class="frame-wrap" aria-label="Ember poster">
+      <div class="frame"><div class="mat" id="poster"></div></div>
+    </section>
+  </main>
+  <section class="panel missing" id="missing" hidden>
+    <h2>No Ember here</h2>
+    <p class="lede">This link doesn’t look like an Ember. Ember links end in an 8-character code.</p>
+    <a class="button primary" href="/">Get your Ember</a>
+  </section>
+  <script type="module" src="/src/app/ember.js"></script>
+</body>
+</html>

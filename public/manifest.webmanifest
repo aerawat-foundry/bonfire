@@ -18,6 +18,6 @@
   ],
   "shortcuts": [
     { "name": "Scan", "url": "./scan/", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Generate", "url": "./", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+    { "name": "Generate", "url": "./generate/", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
   ]
 }

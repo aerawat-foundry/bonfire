@@ -1,0 +1,3 @@
+{
+  "rewrites": [{ "source": "/ember/:code", "destination": "/ember/index.html" }]
+}

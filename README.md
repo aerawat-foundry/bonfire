@@ -19,6 +19,8 @@ burns at the base of a grid column and rises as a plume of embers.
 
 | URL      | What it does |
 |----------|--------------|
+| `/`      | **Home.** Asks for your name, then takes you to your own Ember. |
+| `/ember/<code>` | **Your Ember.** An Ember QR poster whose QR leads back to `https://thissideoftech.com/ember/<code>`. The 8-character code comes from a hash of the name (same name, same code; case and spacing ignored; the name can't be recovered from it). The name itself stays on the device that entered it. Anyone else sees the poster without the name. Share, copy link, PNG/SVG download, plus an in-page check that the poster scans back to its link. |
 | `/`      | **Generator.** Type text, get the poster as SVG or PNG. Optional hidden ember text, plus an X-ray view of the convention. |
 | `/qr/` | **Ember QR.** A standard QR drawn *as* the embers: a column of grid cells opening into a plume of embers, with ash where the code has no embers. Spare data bits are solved for the picture (zero errors), and an adjustable share of the error-correction budget ("burn") pulls more modules into shape. Settings: size, error-correction level, burn, timing/alignment styling, x-ray. Each design is decoded in the page before you download it. Any QR reader can scan the result; it has no ember layer. |
 | `/scan/` | **Scanner.** Opens straight to the camera, with a gallery icon to scan a saved image (paste and drag-and-drop work too). A **Standard QR / Ember QR** switch picks the mode: Standard reads only the QR; Ember also reads the ember layer (pooling evidence across camera frames) and checks the hotpoints. `?mode=standard` or `?mode=ember` preselects it. |
@@ -27,11 +29,17 @@ burns at the base of a grid column and rises as a plume of embers.
 
 ```sh
 npm install
-npm run dev        # http://localhost:5173/ and /scan/
+npm run dev        # http://localhost:5173/ (and /generate/, /qr/, /scan/, /ember/<code>)
 npm run dev:phone  # same, over HTTPS on your network (self-signed), to test the camera on a phone
-npm run build      # static site in dist/ (relative paths; host anywhere)
+npm run build      # static site in dist/, served from the domain root
 npm test
 ```
+
+### Hosting
+
+* **Domain root.** The site is built for the root of its domain (`base: '/'`), because pages are opened from deep links such as `/ember/<code>`.
+* **One page for every code.** Every `/ember/<code>` must serve `ember/index.html`. That rule is already included for Netlify and Cloudflare Pages (`public/_redirects`), for Vercel (`vercel.json`), and for `npm run dev` / `preview`. On another host, add the same rewrite.
+* **The address in the QR codes.** QR codes point at `https://thissideoftech.com`, even when the page is opened on localhost or a preview deploy. Set `VITE_SITE_ORIGIN` at build time to use another address.
 
 ### Installable app (PWA)
 

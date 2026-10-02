@@ -3,57 +3,35 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#ece8e1" />
-  <title>Ember Code</title>
   <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="Ember" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta name="theme-color" content="#f7f4ee" />
+  <meta name="description" content="Tell us your name and get your own Ember." />
+  <title>Ember</title>
   <link rel="stylesheet" href="/src/app/style.css" />
 </head>
-<body>
-  <header class="top">
-    <h1>Ember <span>Code</span></h1>
-    <nav><a href="./" aria-current="page">Generate</a><a href="./qr/">Ember QR</a><a href="./scan/">Scan</a><button id="install" class="install" hidden>Install app</button></nav>
-  </header>
-  <main>
-    <section class="panel" aria-label="Generator">
-      <p class="lede">A standard QR burns at the base of the column. The embers rising from it are a second code
-        that spells the same text, and the glowing hotpoints are placed by the text's hash.</p>
-      <label>Text for the QR
-        <textarea id="text" rows="3" spellcheck="false">https://this.side.of.tech</textarea>
-      </label>
-      <details>
-        <summary>Different text in the embers</summary>
-        <label style="margin-top:8px">Ember text <small>Leave empty to burn the same text. Only the Ember scanner can read it.</small>
-          <input id="ember-text" type="text" spellcheck="false" />
-        </label>
-      </details>
-      <label class="check"><input id="xray" type="checkbox" /> X-ray: show the convention</label>
-      <p id="error" class="error" hidden></p>
-      <dl class="stats" id="stats"></dl>
-      <div class="row">
-        <button class="primary" id="dl-svg">Download SVG</button>
-        <button id="dl-png">Download PNG</button>
-      </div>
-      <details>
-        <summary>How the convention works</summary>
-        <ol>
-          <li><b>QR:</b> a standard QR at error correction H, which any phone can read. Dark modules are charred cells, coloured by distance from the flame.</li>
-          <li><b>Embers:</b> above the QR's quiet zone, a fixed plume of cells on the same grid. Each data cell holds one bit (ember or blank) of a
-            Reed-Solomon-protected, whitened copy of the text, in a fixed shuffled order. Extra particles fill the gaps as decoys.</li>
-          <li><b>Hotpoints:</b> 5–8 dark modules chosen by SHA-256 of the text, with a glowing core. The scanner checks that they are hot.</li>
-        </ol>
-        <p>Full spec: <code>SPEC.md</code> in the repository.</p>
-      </details>
-    </section>
-    <section class="frame-wrap" aria-label="Poster preview">
-      <div class="frame"><div class="mat" id="poster"></div></div>
-    </section>
+<body class="home">
+  <main class="home-main">
+    <form class="name-card" id="name-form" novalidate>
+      <svg class="mark" viewBox="0 0 64 64" aria-hidden="true">
+        <g fill="#2a1a11"><rect x="24" y="22" width="5" height="5"/><rect x="35" y="22" width="5" height="5"/><rect x="29.5" y="28" width="5" height="5"/><rect x="24" y="34" width="5" height="5"/><rect x="35" y="34" width="5" height="5"/></g>
+        <g fill="#c8400c"><rect x="18" y="12" width="4" height="4"/><rect x="41" y="8" width="3" height="3"/><rect x="30" y="4" width="3" height="3"/><rect x="45" y="17" width="4" height="4"/></g>
+        <path d="M32 42c3 5 9 8 9 14a9 9 0 0 1-18 0c0-6 6-9 9-14z" fill="#ffab55"/><path d="M32 50c1.5 2.5 4.5 4 4.5 7a4.5 4.5 0 0 1-9 0c0-3 3-4.5 4.5-7z" fill="#fff1c9"/>
+      </svg>
+      <h1>Ember</h1>
+      <label for="name">What’s your name?</label>
+      <input id="name" name="name" type="text" autocomplete="name" autocapitalize="words" spellcheck="false"
+        maxlength="80" placeholder="Your name" required />
+      <p class="error" id="error" hidden></p>
+      <button class="primary" type="submit">Get my Ember</button>
+      <p class="fine">Your name stays on this device. Your Ember gets its own link.</p>
+    </form>
   </main>
-  <script type="module" src="/src/app/generate.js"></script>
+  <footer class="home-links"><a href="/scan/">Scan</a><a href="/generate/">Generate</a><a href="/qr/">Ember QR</a></footer>
+  <script type="module" src="/src/app/home.js"></script>
 </body>
 </html>

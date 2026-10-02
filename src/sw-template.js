@@ -41,6 +41,7 @@ self.addEventListener('fetch', (event) => {
         .catch(async () => {
           const cache = await caches.open(CACHE);
           const url = new URL(request.url);
+          if (/^\/ember\/[^/]+\/?$/.test(url.pathname)) return cache.match(scoped('ember/'), MATCH);
           return (await cache.match(request, MATCH))
             || (await cache.match(url.origin + url.pathname.replace(/index\.html$/, ''), MATCH))
             || cache.match(scoped('scan/'), MATCH);
